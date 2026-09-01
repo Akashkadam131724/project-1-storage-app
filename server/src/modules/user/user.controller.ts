@@ -6,6 +6,7 @@ import {
   ErrorCode,
   HttpStatus,
 } from "../../shared/http/index.js";
+import { paginationOf } from "../../shared/pagination/index.js";
 import {
   assertNotSelf,
   changePassword,
@@ -66,8 +67,8 @@ export async function deleteMe(req: Request, res: Response) {
   return ApiResponse.success(res, { message: "Account deleted" });
 }
 
-export async function getUsers(_req: Request, res: Response) {
-  const users = await listUsers();
+export async function getUsers(req: Request, res: Response) {
+  const users = await listUsers(paginationOf(req.query));
   return ApiResponse.success(res, { message: "Users loaded", data: users });
 }
 

@@ -2,6 +2,8 @@ import { Router } from "express";
 import { requireAdmin, requireAuth } from "../auth/auth.middleware.js";
 import { validateBody } from "../../shared/middleware/validate-body.js";
 import { validateParams } from "../../shared/middleware/validate-params.js";
+import { validateQuery } from "../../shared/middleware/validate-query.js";
+import { paginationQuerySchema } from "../../shared/pagination/index.js";
 import {
   deleteMe,
   disableMe,
@@ -39,7 +41,12 @@ userRouter.post("/me/password", validateBody(setPasswordSchema), postPassword);
 userRouter.patch("/me/disable", disableMe);
 userRouter.delete("/me", deleteMe);
 
-userRouter.get("/", requireAdmin, getUsers);
+userRouter.get(
+  "/",
+  requireAdmin,
+  validateQuery(paginationQuerySchema),
+  getUsers,
+);
 userRouter.post(
   "/:userId/logout",
   requireAdmin,

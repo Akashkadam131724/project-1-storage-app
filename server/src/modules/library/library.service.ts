@@ -1,4 +1,3 @@
-import { RECENT_FILE_LIMIT } from "../../shared/constants/index.js";
 import { isFolderHidden } from "../directory/directory.service.js";
 import {
   DirectoryModel,
@@ -6,50 +5,71 @@ import {
   type DirectoryDoc,
 } from "../directory/directory.model.js";
 import { FileModel, toPublicFile, type FileDoc } from "../file/file.model.js";
+import {
+  pageOffset,
+  paginateArray,
+  toPaginated,
+  type PaginationQuery,
+} from "../../shared/pagination/index.js";
 
 const explicitlyTrashed = { trashedAt: { $ne: null } };
 const liveAndStarred = { trashedAt: null, starredAt: { $ne: null } };
 
-export async function listTrash(userId: string) {
-  const [folders, files] = await Promise.all([
-    DirectoryModel.find({ userId, ...explicitlyTrashed }).sort({
-      trashedAt: -1,
-    }),
-    FileModel.find({ userId, ...explicitlyTrashed }).sort({ trashedAt: -1 }),
+export async function listTrash(userId: string, pagination: PaginationQuery) {
+  const filter = { userId, ...explicitlyTrashed };
+  const skip = pageOffset(pagination);
+  const [folderDocs, folderTotal, fileDocs, fileTotal] = await Promise.all([
+    DirectoryModel.find(filter)
+      .sort({ trashedAt: -1 })
+      .skip(skip)
+      .limit(pagination.limit),
+    DirectoryModel.countDocuments(filter),
+    FileModel.find(filter)
+      .sort({ trashedAt: -1 })
+      .skip(skip)
+      .limit(pagination.limit),
+    FileModel.countDocuments(filter),
   ]);
 
   return {
-    folders: folders.map(toPublicFolder),
-    files: files.map(toPublicFile),
+    folders: toPaginated(
+      folderDocs.map(toPublicFolder),
+      folderTotal,
+      pagination,
+    ),
+    files: toPaginated(fileDocs.map(toPublicFile), fileTotal, pagination),
   };
 }
 
-export async function listStarred(userId: string) {
+export async function listStarred(userId: string, pagination: PaginationQuery) {
   const [folders, files] = await Promise.all([
     DirectoryModel.find({ userId, ...liveAndStarred }).sort({ starredAt: -1 }),
     FileModel.find({ userId, ...liveAndStarred }).sort({ starredAt: -1 }),
   ]);
 
-  const visibleFolders = await filterVisibleFolders(folders);
-  const visibleFiles = await filterVisibleFiles(files);
-
   return {
-    folders: visibleFolders.map(toPublicFolder),
-    files: visibleFiles.map(toPublicFile),
+    folders: paginateArray(
+      (await filterVisibleFolders(folders)).map(toPublicFolder),
+      pagination,
+    ),
+    files: paginateArray(
+      (await filterVisibleFiles(files)).map(toPublicFile),
+      pagination,
+    ),
   };
 }
 
-export async function listRecent(userId: string) {
+export async function listRecent(userId: string, pagination: PaginationQuery) {
   const candidates = await FileModel.find({
     userId,
     trashedAt: null,
     lastOpenedAt: { $ne: null },
-  })
-    .sort({ lastOpenedAt: -1 })
-    .limit(RECENT_FILE_LIMIT * 2);
+  }).sort({ lastOpenedAt: -1 });
 
-  const visible = await filterVisibleFiles(candidates);
-  return visible.slice(0, RECENT_FILE_LIMIT).map(toPublicFile);
+  return paginateArray(
+    (await filterVisibleFiles(candidates)).map(toPublicFile),
+    pagination,
+  );
 }
 
 async function filterVisibleFolders(folders: DirectoryDoc[]) {

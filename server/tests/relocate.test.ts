@@ -41,13 +41,13 @@ describe("move and copy", () => {
       .expect(200);
 
     const home = await agent.get("/api/directories").expect(200);
-    expect(home.body.data.files).toEqual([]);
+    expect(home.body.data.files.items).toEqual([]);
     expect(home.body.data.folder.size).toBe("hello".length);
 
     const docs = await agent
       .get(`/api/directories/${folder.body.data.id as string}`)
       .expect(200);
-    expect(docs.body.data.files[0].name).toBe("hello.txt");
+    expect(docs.body.data.files.items[0].name).toBe("hello.txt");
     expect(docs.body.data.folder.size).toBe("hello".length);
   });
 
@@ -65,7 +65,7 @@ describe("move and copy", () => {
 
     expect(copied.body.data.name).toBe("hello (copy).txt");
     const home = await agent.get("/api/directories").expect(200);
-    expect(home.body.data.files).toHaveLength(2);
+    expect(home.body.data.files.items).toHaveLength(2);
     expect(home.body.data.folder.size).toBe("hello".length * 2);
 
     const download = await agent
@@ -103,7 +103,7 @@ describe("move and copy", () => {
     const listing = await agent
       .get(`/api/directories/${projects.body.data.id as string}`)
       .expect(200);
-    expect(listing.body.data.folders[0].name).toBe("Docs");
+    expect(listing.body.data.folders.items[0].name).toBe("Docs");
   });
 
   it("copies a folder tree", async () => {
@@ -132,10 +132,12 @@ describe("move and copy", () => {
       .get(`/api/directories/${copied.body.data.id as string}`)
       .expect(200);
     expect(
-      listing.body.data.folders.map((item: { name: string }) => item.name),
+      listing.body.data.folders.items.map(
+        (item: { name: string }) => item.name,
+      ),
     ).toEqual(["Notes"]);
     expect(
-      listing.body.data.files.map((item: { name: string }) => item.name),
+      listing.body.data.files.items.map((item: { name: string }) => item.name),
     ).toEqual(["inside.txt"]);
     expect(listing.body.data.folder.size).toBe("inside".length);
   });

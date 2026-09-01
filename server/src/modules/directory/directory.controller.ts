@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { signedInUser } from "../auth/auth.middleware.js";
 import { ApiResponse, HttpStatus } from "../../shared/http/index.js";
+import { paginationOf } from "../../shared/pagination/index.js";
 import {
   copyFolder,
   createFolder,
@@ -23,14 +24,22 @@ import type {
 
 export async function getRootFolder(req: Request, res: Response) {
   const user = signedInUser(req);
-  const data = await getFolderListing(user.id, user.rootDirId);
+  const data = await getFolderListing(
+    user.id,
+    user.rootDirId,
+    paginationOf(req.query),
+  );
   return ApiResponse.success(res, { message: "Folder loaded", data });
 }
 
 export async function getFolder(req: Request, res: Response) {
   const user = signedInUser(req);
   const { folderId } = req.params as FolderIdParams;
-  const data = await getFolderListing(user.id, folderId);
+  const data = await getFolderListing(
+    user.id,
+    folderId,
+    paginationOf(req.query),
+  );
   return ApiResponse.success(res, { message: "Folder loaded", data });
 }
 

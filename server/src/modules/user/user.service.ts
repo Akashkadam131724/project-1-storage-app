@@ -3,6 +3,11 @@ import { destroyAllUserSessions } from "../auth/session.service.js";
 import { DirectoryModel } from "../directory/directory.model.js";
 import { deleteAllUserFiles } from "../file/file.service.js";
 import { ApiError, ErrorCode, HttpStatus } from "../../shared/http/index.js";
+import {
+  pageOffset,
+  toPaginated,
+  type PaginationQuery,
+} from "../../shared/pagination/index.js";
 import { toPublicUser, UserModel } from "./user.model.js";
 import type { UserRole } from "../../shared/constants/index.js";
 
@@ -85,12 +90,25 @@ export async function deleteAccount(userId: string) {
   await UserModel.deleteOne({ _id: userId });
 }
 
-export async function listUsers() {
-  const users = await UserModel.find().select("+passwordHash");
-  return users.map((user) => ({
-    ...toPublicUser(user),
-    isDeleted: user.isDeleted,
-  }));
+export async function listUsers(pagination: PaginationQuery) {
+  const skip = pageOffset(pagination);
+  const [users, total] = await Promise.all([
+    UserModel.find()
+      .select("+passwordHash")
+      .sort({ email: 1 })
+      .skip(skip)
+      .limit(pagination.limit),
+    UserModel.countDocuments(),
+  ]);
+
+  return toPaginated(
+    users.map((user) => ({
+      ...toPublicUser(user),
+      isDeleted: user.isDeleted,
+    })),
+    total,
+    pagination,
+  );
 }
 
 export async function changeUserRole(userId: string, role: UserRole) {

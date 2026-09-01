@@ -2,6 +2,8 @@ import { Router } from "express";
 import { requireAuth } from "../auth/auth.middleware.js";
 import { validateBody } from "../../shared/middleware/validate-body.js";
 import { validateParams } from "../../shared/middleware/validate-params.js";
+import { validateQuery } from "../../shared/middleware/validate-query.js";
+import { paginationQuerySchema } from "../../shared/pagination/index.js";
 import {
   copyOwnedFolder,
   getFolder,
@@ -27,7 +29,7 @@ export const directoryRouter = Router();
 
 directoryRouter.use(requireAuth);
 
-directoryRouter.get("/", getRootFolder);
+directoryRouter.get("/", validateQuery(paginationQuerySchema), getRootFolder);
 directoryRouter.post("/", validateBody(createFolderSchema), postFolder);
 directoryRouter.post(
   "/:folderId/restore",
@@ -64,6 +66,7 @@ directoryRouter.delete(
 directoryRouter.get(
   "/:folderId",
   validateParams(folderIdParamsSchema),
+  validateQuery(paginationQuerySchema),
   getFolder,
 );
 directoryRouter.patch(

@@ -146,7 +146,9 @@ describe("admin users", () => {
 
     const admin = await adminAgent();
     const list = await admin.get("/api/users").expect(200);
-    expect(list.body.data.length).toBeGreaterThanOrEqual(2);
+    expect(list.body.data.items.length).toBeGreaterThanOrEqual(2);
+    expect(list.body.data.page).toBe(1);
+    expect(list.body.data.total).toBeGreaterThanOrEqual(2);
 
     await admin.patch(`/api/users/${userId}/disable`).expect(200);
     expect((await userAgent.get("/api/users/me")).status).toBe(401);

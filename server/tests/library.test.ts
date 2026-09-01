@@ -37,11 +37,11 @@ describe("trash, starred, and recent", () => {
 
     const trash = await agent.get("/api/trash").expect(200);
     expect(
-      trash.body.data.files.map((item: { name: string }) => item.name),
+      trash.body.data.files.items.map((item: { name: string }) => item.name),
     ).toEqual(["notes.txt"]);
 
     const homeWhileTrashed = await agent.get("/api/directories").expect(200);
-    expect(homeWhileTrashed.body.data.files).toEqual([]);
+    expect(homeWhileTrashed.body.data.files.items).toEqual([]);
     expect(homeWhileTrashed.body.data.folder.size).toBe(payload.length);
 
     await agent
@@ -66,8 +66,8 @@ describe("trash, starred, and recent", () => {
     await agent.post(`/api/files/${fileId}/restore`).expect(200);
 
     const home = await agent.get("/api/directories").expect(200);
-    expect(home.body.data.files[0].name).toBe("notes.txt");
-    expect((await agent.get("/api/trash")).body.data.files).toEqual([]);
+    expect(home.body.data.files.items[0].name).toBe("notes.txt");
+    expect((await agent.get("/api/trash")).body.data.files.items).toEqual([]);
   });
 
   it("permanently deletes a trashed file and frees storage", async () => {
@@ -85,7 +85,7 @@ describe("trash, starred, and recent", () => {
     expect((await agent.get(`/api/files/${fileId}`)).status).toBe(404);
     const home = await agent.get("/api/directories").expect(200);
     expect(home.body.data.folder.size).toBe(0);
-    expect((await agent.get("/api/trash")).body.data.files).toEqual([]);
+    expect((await agent.get("/api/trash")).body.data.files.items).toEqual([]);
   });
 
   it("lists only the folder that was explicitly trashed", async () => {
@@ -110,9 +110,9 @@ describe("trash, starred, and recent", () => {
 
     const trash = await agent.get("/api/trash").expect(200);
     expect(
-      trash.body.data.folders.map((item: { name: string }) => item.name),
+      trash.body.data.folders.items.map((item: { name: string }) => item.name),
     ).toEqual(["Docs"]);
-    expect(trash.body.data.files).toEqual([]);
+    expect(trash.body.data.files.items).toEqual([]);
     expect(
       (await agent.get(`/api/directories/${child.body.data.id as string}`))
         .status,
@@ -146,17 +146,19 @@ describe("trash, starred, and recent", () => {
 
     const starred = await agent.get("/api/starred").expect(200);
     expect(
-      starred.body.data.folders.map((item: { name: string }) => item.name),
+      starred.body.data.folders.items.map(
+        (item: { name: string }) => item.name,
+      ),
     ).toEqual(["Docs"]);
     expect(
-      starred.body.data.files.map((item: { name: string }) => item.name),
+      starred.body.data.files.items.map((item: { name: string }) => item.name),
     ).toEqual(["star.txt"]);
 
     await agent
       .post(`/api/files/${uploaded.body.data.id as string}/unstar`)
       .expect(200);
     const after = await agent.get("/api/starred").expect(200);
-    expect(after.body.data.files).toEqual([]);
+    expect(after.body.data.files.items).toEqual([]);
   });
 
   it("records recent files when metadata or content is opened", async () => {
@@ -167,12 +169,12 @@ describe("trash, starred, and recent", () => {
       .expect(201);
     const fileId = uploaded.body.data.id as string;
 
-    expect((await agent.get("/api/recent")).body.data).toEqual([]);
+    expect((await agent.get("/api/recent")).body.data.items).toEqual([]);
 
     await agent.get(`/api/files/${fileId}`).expect(200);
     const recent = await agent.get("/api/recent").expect(200);
-    expect(recent.body.data.map((item: { name: string }) => item.name)).toEqual(
-      ["recent.txt"],
-    );
+    expect(
+      recent.body.data.items.map((item: { name: string }) => item.name),
+    ).toEqual(["recent.txt"]);
   });
 });

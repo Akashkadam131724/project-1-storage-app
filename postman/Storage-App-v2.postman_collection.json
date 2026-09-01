@@ -307,8 +307,8 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/users",
-            "description": "Admin only. Lists all accounts."
+            "url": "{{baseUrl}}/api/users?page=1&limit=20",
+            "description": "Admin only. Paginated list of accounts. Query: `page` (default 1), `limit` (default 20, max 100)."
           }
         },
         {
@@ -385,8 +385,8 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/directories",
-            "description": "Lists the signed-in user's Home folder, child folders, and files."
+            "url": "{{baseUrl}}/api/directories?page=1&limit=20",
+            "description": "Lists Home. Child `folders` and `files` are paginated (`items`, `page`, `limit`, `total`, `totalPages`)."
           }
         },
         {
@@ -394,8 +394,8 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/directories/{{folderId}}",
-            "description": "Lists a folder the user owns."
+            "url": "{{baseUrl}}/api/directories/{{folderId}}?page=1&limit=20",
+            "description": "Lists a folder the user owns. Child folders and files are paginated."
           }
         },
         {
@@ -666,8 +666,8 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/trash",
-            "description": "Folders and files that were explicitly moved to trash."
+            "url": "{{baseUrl}}/api/trash?page=1&limit=20",
+            "description": "Paginated folders and files that were explicitly moved to trash."
           }
         },
         {
@@ -675,8 +675,8 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/starred",
-            "description": "Starred folders and files that are not in trash."
+            "url": "{{baseUrl}}/api/starred?page=1&limit=20",
+            "description": "Paginated starred folders and files that are not in trash."
           }
         },
         {
@@ -684,8 +684,8 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/recent",
-            "description": "Up to 50 files recently opened via metadata or download."
+            "url": "{{baseUrl}}/api/recent?page=1&limit=20",
+            "description": "Paginated files recently opened via metadata or download."
           }
         }
       ]

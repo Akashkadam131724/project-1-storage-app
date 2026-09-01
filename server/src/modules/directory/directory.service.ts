@@ -3,6 +3,11 @@ import { Types, type HydratedDocument } from "mongoose";
 import { MAX_STORAGE_BYTES } from "../../shared/constants/index.js";
 import { uniqueCopyName } from "../../shared/lib/copy-name.js";
 import { ApiError, ErrorCode, HttpStatus } from "../../shared/http/index.js";
+import {
+  pageOffset,
+  toPaginated,
+  type PaginationQuery,
+} from "../../shared/pagination/index.js";
 import { buildBlobKey, copyBlob, deleteBlob } from "../file/blob.store.js";
 import { FileModel, toPublicFile } from "../file/file.model.js";
 import {
@@ -16,23 +21,21 @@ type FolderAccess = { includeTrashed?: boolean };
 
 const live = { trashedAt: null };
 
-export async function getFolderListing(userId: string, folderId: string) {
+export async function getFolderListing(
+  userId: string,
+  folderId: string,
+  pagination: PaginationQuery,
+) {
   const folder = await loadOwnedFolder(userId, folderId);
-  const [folders, files, ancestors] = await Promise.all([
-    DirectoryModel.find({ userId, parentDirId: folder._id, ...live }).sort({
-      name: 1,
-    }),
-    FileModel.find({ userId, parentDirId: folder._id, ...live }).sort({
-      name: 1,
-    }),
+  const [children, ancestors] = await Promise.all([
+    listLiveChildren(userId, folder._id, pagination),
     loadAncestors(folder),
   ]);
 
   return {
     folder: toPublicFolder(folder),
     ancestors: ancestors.map(toPublicFolder),
-    folders: folders.map(toPublicFolder),
-    files: files.map(toPublicFile),
+    ...children,
   };
 }
 
@@ -392,6 +395,33 @@ async function descendantFolderIds(folderId: string) {
     "_id",
   );
   return folders.map((folder) => folder._id.toString());
+}
+
+async function listLiveChildren(
+  userId: string,
+  parentId: Types.ObjectId,
+  pagination: PaginationQuery,
+) {
+  const filter = { userId, parentDirId: parentId, ...live };
+  const skip = pageOffset(pagination);
+  const [folderDocs, folderTotal, fileDocs, fileTotal] = await Promise.all([
+    DirectoryModel.find(filter)
+      .sort({ name: 1 })
+      .skip(skip)
+      .limit(pagination.limit),
+    DirectoryModel.countDocuments(filter),
+    FileModel.find(filter).sort({ name: 1 }).skip(skip).limit(pagination.limit),
+    FileModel.countDocuments(filter),
+  ]);
+
+  return {
+    folders: toPaginated(
+      folderDocs.map(toPublicFolder),
+      folderTotal,
+      pagination,
+    ),
+    files: toPaginated(fileDocs.map(toPublicFile), fileTotal, pagination),
+  };
 }
 
 async function loadAncestors(folder: FolderRecord) {

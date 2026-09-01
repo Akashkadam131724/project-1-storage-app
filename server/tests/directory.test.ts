@@ -30,8 +30,20 @@ describe("directories", () => {
 
     expect(response.body.data.folder.name).toBe("Home");
     expect(response.body.data.folder.isRoot).toBe(true);
-    expect(response.body.data.folders).toEqual([]);
-    expect(response.body.data.files).toEqual([]);
+    expect(response.body.data.folders).toMatchObject({
+      items: [],
+      page: 1,
+      limit: 20,
+      total: 0,
+      totalPages: 0,
+    });
+    expect(response.body.data.files).toMatchObject({
+      items: [],
+      page: 1,
+      limit: 20,
+      total: 0,
+      totalPages: 0,
+    });
   });
 
   it("creates, lists, and renames a nested folder", async () => {
@@ -49,7 +61,9 @@ describe("directories", () => {
 
     const listing = await agent.get(`/api/directories/${folderId}`).expect(200);
     expect(
-      listing.body.data.folders.map((item: { name: string }) => item.name),
+      listing.body.data.folders.items.map(
+        (item: { name: string }) => item.name,
+      ),
     ).toEqual(["Notes"]);
     expect(listing.body.data.ancestors[0].name).toBe("Home");
 
@@ -59,7 +73,7 @@ describe("directories", () => {
       .expect(200);
 
     const renamed = await agent.get(`/api/directories/${folderId}`).expect(200);
-    expect(renamed.body.data.folders[0].name).toBe("Journal");
+    expect(renamed.body.data.folders.items[0].name).toBe("Journal");
   });
 
   it("rejects a duplicate folder name in the same parent", async () => {
@@ -102,6 +116,6 @@ describe("directories", () => {
     expect(missing.status).toBe(404);
 
     const home = await agent.get("/api/directories").expect(200);
-    expect(home.body.data.folders).toEqual([]);
+    expect(home.body.data.folders.items).toEqual([]);
   });
 });

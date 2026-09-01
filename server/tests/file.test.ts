@@ -38,7 +38,7 @@ describe("files", () => {
     expect(uploaded.body.data.size).toBe(payload.length);
 
     const listing = await agent.get("/api/directories").expect(200);
-    expect(listing.body.data.files[0].name).toBe("hello.txt");
+    expect(listing.body.data.files.items[0].name).toBe("hello.txt");
     expect(listing.body.data.folder.size).toBe(payload.length);
 
     const download = await agent
@@ -58,7 +58,7 @@ describe("files", () => {
     expect((await agent.get(`/api/files/${fileId}`)).status).toBe(404);
 
     const emptyHome = await agent.get("/api/directories").expect(200);
-    expect(emptyHome.body.data.files).toEqual([]);
+    expect(emptyHome.body.data.files.items).toEqual([]);
     expect(emptyHome.body.data.folder.size).toBe(payload.length);
   });
 

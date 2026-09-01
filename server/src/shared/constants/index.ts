@@ -27,7 +27,6 @@ export {
   MAX_ENTRY_NAME_LENGTH,
   MAX_FILE_BYTES,
   MAX_STORAGE_BYTES,
-  RECENT_FILE_LIMIT,
   ROOT_FOLDER_NAME,
 } from "./storage.js";
 export {
@@ -36,3 +35,8 @@ export {
   USER_ROLES,
   type UserRole,
 } from "./user.js";
+export {
+  DEFAULT_PAGE,
+  DEFAULT_PAGE_SIZE,
+  MAX_PAGE_SIZE,
+} from "./pagination.js";
