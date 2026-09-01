@@ -1,0 +1,21 @@
+@keyframes auth-particle {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate(16px, -24px);
+    opacity: 0.85;
+  }
+}
+
+.auth-particle {
+  animation: auth-particle ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-particle {
+    animation: none;
+  }
+}
