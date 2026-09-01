@@ -1,0 +1,50 @@
+{
+  "info": {
+    "_postman_id": "a8c3f4e1-6b2d-4f91-9c0a-1d5e7b8a2c34",
+    "name": "Storage App v2",
+    "description": "Backend API for Storage App v2. Auth uses httpOnly cookies — keep cookies on in Postman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:4000"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Get health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/health",
+            "description": "Liveness check. No auth."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "description": "Register, login, OTP, Google, logout. Add requests as the auth module is built.",
+      "item": []
+    },
+    {
+      "name": "Users",
+      "description": "Current user and admin user management. Add requests as the user module is built.",
+      "item": []
+    },
+    {
+      "name": "Directories",
+      "description": "Create, list, rename, and delete folders. Add requests as the directory module is built.",
+      "item": []
+    },
+    {
+      "name": "Files",
+      "description": "Upload, download, rename, and delete files. Add requests as the file module is built.",
+      "item": []
+    }
+  ]
+}

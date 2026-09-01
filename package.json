@@ -1,0 +1,21 @@
+{
+  "name": "project-1-storage-app-v2",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "dev": "npm run dev --prefix server",
+    "build": "npm run build --prefix server",
+    "start": "npm run start --prefix server",
+    "lint": "npm run lint --prefix server",
+    "lint:fix": "npm run lint:fix --prefix server",
+    "format": "npm run format --prefix server",
+    "typecheck": "npm run typecheck --prefix server",
+    "test": "npm run test --prefix server",
+    "analyze": "npm run analyze --prefix server",
+    "check": "npm run check --prefix server"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6"
+  }
+}
