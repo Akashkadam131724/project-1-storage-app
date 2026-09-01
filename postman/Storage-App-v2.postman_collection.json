@@ -2,13 +2,25 @@
   "info": {
     "_postman_id": "a8c3f4e1-6b2d-4f91-9c0a-1d5e7b8a2c34",
     "name": "Storage App v2",
-    "description": "Backend API for Storage App v2. Auth uses httpOnly cookies — keep cookies on in Postman.",
+    "description": "Backend API for Storage App v2. Auth uses the signed `sid` cookie — enable the cookie jar in Postman.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
       "value": "http://127.0.0.1:4000"
+    },
+    {
+      "key": "email",
+      "value": "ada@storage.app"
+    },
+    {
+      "key": "password",
+      "value": "password1"
+    },
+    {
+      "key": "code",
+      "value": ""
     }
   ],
   "item": [
@@ -28,13 +40,92 @@
     },
     {
       "name": "Auth",
-      "description": "Register, login, OTP, Google, logout. Add requests as the auth module is built.",
-      "item": []
+      "description": "Email signup with a verification code, password login, and logout. The signed `sid` cookie is set on login.",
+      "item": [
+        {
+          "name": "Request signup code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.code) {",
+                  "  pm.collectionVariables.set('code', json.data.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/otp",
+            "description": "Sends a 4-digit signup code. In non-production the code is returned in `data.code` (also logged on the server)."
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ada Lovelace\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"code\": \"{{code}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Creates the user and a Home directory. Requires a valid code from Request signup code."
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Sets a signed httpOnly `sid` cookie."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "description": "Deletes the session and clears the cookie."
+          }
+        }
+      ]
     },
     {
       "name": "Users",
-      "description": "Current user and admin user management. Add requests as the user module is built.",
-      "item": []
+      "description": "Current user. Requires the `sid` cookie from Login.",
+      "item": [
+        {
+          "name": "Get me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/me",
+            "description": "Returns the signed-in profile."
+          }
+        }
+      ]
     },
     {
       "name": "Directories",

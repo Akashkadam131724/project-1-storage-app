@@ -1,7 +1,6 @@
 import type { ErrorRequestHandler } from "express";
-import { StatusCodes } from "http-status-codes";
 import { ZodError } from "zod";
-import { AppError } from "../errors/app-error.js";
+import { ApiError, ApiResponse, ErrorCode, HttpStatus } from "../http/index.js";
 import { logger } from "../lib/logger.js";
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
@@ -10,30 +9,25 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
     return;
   }
 
-  if (err instanceof AppError) {
-    res.status(err.statusCode).json({
-      success: false,
-      code: err.code,
-      message: err.message,
-      ...(err.details !== undefined ? { details: err.details } : {}),
-    });
+  if (err instanceof ApiError) {
+    ApiResponse.fail(res, err);
     return;
   }
 
   if (err instanceof ZodError) {
-    res.status(StatusCodes.BAD_REQUEST).json({
-      success: false,
-      code: "VALIDATION_ERROR",
+    ApiResponse.fail(res, {
+      code: ErrorCode.VALIDATION_ERROR,
       message: err.issues[0]?.message ?? "Invalid request",
+      status: HttpStatus.BAD_REQUEST,
       details: err.issues,
     });
     return;
   }
 
   logger.error(err);
-  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-    success: false,
-    code: "INTERNAL_ERROR",
+  ApiResponse.fail(res, {
+    code: ErrorCode.INTERNAL_ERROR,
     message: "Something went wrong",
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
   });
 };

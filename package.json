@@ -12,7 +12,8 @@
     "typecheck": "npm run typecheck --prefix server",
     "test": "npm run test --prefix server",
     "analyze": "npm run analyze --prefix server",
-    "check": "npm run check --prefix server"
+    "check": "npm run check --prefix server",
+    "seed": "npm run seed --prefix server"
   },
   "devDependencies": {
     "husky": "^9.1.7",

@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { env } from "./config/env.js";
+import { JSON_BODY_LIMIT } from "./shared/constants/index.js";
 import { authRouter } from "./modules/auth/index.js";
 import { directoryRouter } from "./modules/directory/index.js";
 import { fileRouter } from "./modules/file/index.js";
@@ -21,7 +22,7 @@ export function createApp() {
       credentials: true,
     }),
   );
-  app.use(express.json({ limit: "1mb" }));
+  app.use(express.json({ limit: JSON_BODY_LIMIT }));
   app.use(cookieParser(env.COOKIE_SECRET));
 
   app.use("/api/health", healthRouter);
