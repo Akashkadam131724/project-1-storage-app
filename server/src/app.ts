@@ -8,6 +8,11 @@ import { authRouter } from "./modules/auth/index.js";
 import { directoryRouter } from "./modules/directory/index.js";
 import { fileRouter } from "./modules/file/index.js";
 import { healthRouter } from "./modules/health/index.js";
+import {
+  recentRouter,
+  starredRouter,
+  trashRouter,
+} from "./modules/library/index.js";
 import { userRouter } from "./modules/user/index.js";
 import { errorHandler } from "./shared/middleware/error-handler.js";
 import { notFound } from "./shared/middleware/not-found.js";
@@ -30,6 +35,9 @@ export function createApp() {
   app.use("/api/users", userRouter);
   app.use("/api/directories", directoryRouter);
   app.use("/api/files", fileRouter);
+  app.use("/api/trash", trashRouter);
+  app.use("/api/starred", starredRouter);
+  app.use("/api/recent", recentRouter);
 
   app.use(notFound);
   app.use(errorHandler);

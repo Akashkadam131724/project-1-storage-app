@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { ADMIN_ROLE } from "../../shared/constants/index.js";
 import { ApiError, ErrorCode, HttpStatus } from "../../shared/http/index.js";
+import type { PublicUser } from "../user/user.model.js";
 import {
   clearSessionCookie,
   getUserFromSession,
@@ -45,4 +46,15 @@ export function requireAdmin(req: Request, _res: Response, next: NextFunction) {
     });
   }
   next();
+}
+
+export function signedInUser(req: Request): PublicUser {
+  if (!req.user) {
+    throw new ApiError({
+      code: ErrorCode.UNAUTHENTICATED,
+      message: "Sign in required",
+      status: HttpStatus.UNAUTHORIZED,
+    });
+  }
+  return req.user;
 }

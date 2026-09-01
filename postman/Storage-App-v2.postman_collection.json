@@ -37,6 +37,18 @@
     {
       "key": "userId",
       "value": ""
+    },
+    {
+      "key": "folderId",
+      "value": ""
+    },
+    {
+      "key": "fileId",
+      "value": ""
+    },
+    {
+      "key": "destFolderId",
+      "value": ""
     }
   ],
   "item": [
@@ -76,9 +88,7 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{email}}\"\n}"
@@ -91,9 +101,7 @@
           "name": "Register",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Ada Lovelace\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"code\": \"{{code}}\"\n}"
@@ -106,9 +114,7 @@
           "name": "Login",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
@@ -121,9 +127,7 @@
           "name": "Login with Google",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"idToken\": \"{{googleIdToken}}\"\n}"
@@ -145,9 +149,7 @@
           "name": "Login with GitHub code",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"{{githubCode}}\"\n}"
@@ -174,9 +176,7 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{email}}\"\n}"
@@ -189,9 +189,7 @@
           "name": "Reset password",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{email}}\",\n  \"code\": \"{{resetCode}}\",\n  \"password\": \"{{password}}\"\n}"
@@ -251,9 +249,7 @@
           "name": "Update profile",
           "request": {
             "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Ada Lovelace\"\n}"
@@ -266,9 +262,7 @@
           "name": "Change password",
           "request": {
             "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"password2\"\n}"
@@ -281,9 +275,7 @@
           "name": "Set password",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"password\": \"{{password}}\"\n}"
@@ -350,9 +342,7 @@
           "name": "Change user role",
           "request": {
             "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"role\": \"User\"\n}"
@@ -374,13 +364,331 @@
     },
     {
       "name": "Directories",
-      "description": "Create, list, rename, and delete folders. Add requests as the directory module is built.",
-      "item": []
+      "description": "Folders. Home is created at signup. Requires the `sid` cookie.",
+      "item": [
+        {
+          "name": "List Home",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.folder && json.data.folder.id) {",
+                  "  pm.collectionVariables.set('folderId', json.data.folder.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/directories",
+            "description": "Lists the signed-in user's Home folder, child folders, and files."
+          }
+        },
+        {
+          "name": "List folder",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/directories/{{folderId}}",
+            "description": "Lists a folder the user owns."
+          }
+        },
+        {
+          "name": "Create folder",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('folderId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Docs\"\n}"
+            },
+            "url": "{{baseUrl}}/api/directories",
+            "description": "Creates a folder. Optional `parentId` defaults to Home."
+          }
+        },
+        {
+          "name": "Rename folder",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Documents\"\n}"
+            },
+            "url": "{{baseUrl}}/api/directories/{{folderId}}",
+            "description": "Renames a folder. Home cannot be renamed."
+          }
+        },
+        {
+          "name": "Move folder",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parentId\": \"{{destFolderId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/directories/{{folderId}}/move",
+            "description": "Moves a folder. Cannot move Home, or a folder into itself."
+          }
+        },
+        {
+          "name": "Copy folder",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parentId\": \"{{destFolderId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/directories/{{folderId}}/copy",
+            "description": "Copies a folder tree. Omit `parentId` to copy next to the original. Name gets ` (copy)` if needed."
+          }
+        },
+        {
+          "name": "Star folder",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/directories/{{folderId}}/star",
+            "description": "Stars a folder."
+          }
+        },
+        {
+          "name": "Unstar folder",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/directories/{{folderId}}/unstar",
+            "description": "Removes a folder from starred."
+          }
+        },
+        {
+          "name": "Trash folder",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/directories/{{folderId}}",
+            "description": "Soft-deletes a folder. Descendants stay as they are and are hidden until restore. Home cannot be trashed. Storage is not freed."
+          }
+        },
+        {
+          "name": "Restore folder",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/directories/{{folderId}}/restore",
+            "description": "Restores a trashed folder in place. 409 NAME_TAKEN if a live sibling already uses the name."
+          }
+        },
+        {
+          "name": "Permanently delete folder",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/directories/{{folderId}}/permanent",
+            "description": "Deletes a folder, its descendants, and their blobs. Frees storage. Home cannot be deleted."
+          }
+        }
+      ]
     },
     {
       "name": "Files",
-      "description": "Upload, download, rename, and delete files. Add requests as the file module is built.",
-      "item": []
+      "description": "Upload to local disk (S3 later). Requires the `sid` cookie. Field name for upload is `file`.",
+      "item": [
+        {
+          "name": "Upload file",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('fileId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "parentId",
+                  "value": "{{folderId}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/files",
+            "description": "Multipart upload. Omit `parentId` to store in Home. Max 100 MB."
+          }
+        },
+        {
+          "name": "Get file",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/files/{{fileId}}",
+            "description": "File metadata (not the bytes)."
+          }
+        },
+        {
+          "name": "Download file",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/files/{{fileId}}/content",
+            "description": "Downloads the file bytes."
+          }
+        },
+        {
+          "name": "Rename file",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"notes.txt\"\n}"
+            },
+            "url": "{{baseUrl}}/api/files/{{fileId}}",
+            "description": "Renames a file in its current folder."
+          }
+        },
+        {
+          "name": "Move file",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parentId\": \"{{destFolderId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/files/{{fileId}}/move",
+            "description": "Moves a file into another folder the user owns."
+          }
+        },
+        {
+          "name": "Copy file",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parentId\": \"{{destFolderId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/files/{{fileId}}/copy",
+            "description": "Copies a file. Omit `parentId` to copy into the same folder. Name gets ` (copy)` if needed."
+          }
+        },
+        {
+          "name": "Star file",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/files/{{fileId}}/star",
+            "description": "Stars a file."
+          }
+        },
+        {
+          "name": "Unstar file",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/files/{{fileId}}/unstar",
+            "description": "Removes a file from starred."
+          }
+        },
+        {
+          "name": "Trash file",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/files/{{fileId}}",
+            "description": "Soft-deletes a file. Storage is not freed until permanent delete."
+          }
+        },
+        {
+          "name": "Restore file",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/files/{{fileId}}/restore",
+            "description": "Restores a trashed file in place. 409 NAME_TAKEN if a live sibling already uses the name."
+          }
+        },
+        {
+          "name": "Permanently delete file",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/files/{{fileId}}/permanent",
+            "description": "Deletes the file and its stored bytes. Frees storage."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Library",
+      "description": "Drive views. Requires the `sid` cookie.",
+      "item": [
+        {
+          "name": "List trash",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/trash",
+            "description": "Folders and files that were explicitly moved to trash."
+          }
+        },
+        {
+          "name": "List starred",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/starred",
+            "description": "Starred folders and files that are not in trash."
+          }
+        },
+        {
+          "name": "List recent",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/recent",
+            "description": "Up to 50 files recently opened via metadata or download."
+          }
+        }
+      ]
     }
   ]
 }

@@ -1,6 +1,7 @@
 import { hashPassword, verifyPassword } from "../auth/auth.service.js";
 import { destroyAllUserSessions } from "../auth/session.service.js";
 import { DirectoryModel } from "../directory/directory.model.js";
+import { deleteAllUserFiles } from "../file/file.service.js";
 import { ApiError, ErrorCode, HttpStatus } from "../../shared/http/index.js";
 import { toPublicUser, UserModel } from "./user.model.js";
 import type { UserRole } from "../../shared/constants/index.js";
@@ -79,6 +80,7 @@ export async function restoreAccount(userId: string) {
 export async function deleteAccount(userId: string) {
   await loadUser(userId);
   await destroyAllUserSessions(userId);
+  await deleteAllUserFiles(userId);
   await DirectoryModel.deleteMany({ userId });
   await UserModel.deleteOne({ _id: userId });
 }

@@ -1,5 +1,6 @@
 import { config as loadEnv } from "dotenv";
 import { z } from "zod";
+import { DEFAULT_UPLOAD_DIR } from "../shared/constants/index.js";
 
 if (process.env.NODE_ENV !== "test") {
   loadEnv();
@@ -20,6 +21,7 @@ const envSchema = z
     GITHUB_CALLBACK_URL: z
       .string()
       .default("http://127.0.0.1:4000/api/auth/github/callback"),
+    UPLOAD_DIR: z.string().min(1).default(DEFAULT_UPLOAD_DIR),
   })
   .superRefine((value, ctx) => {
     if (

@@ -22,7 +22,14 @@ export {
   type AuthProvider,
   type OtpPurpose,
 } from "./auth.js";
-export { ROOT_FOLDER_NAME } from "./storage.js";
+export {
+  DEFAULT_UPLOAD_DIR,
+  MAX_ENTRY_NAME_LENGTH,
+  MAX_FILE_BYTES,
+  MAX_STORAGE_BYTES,
+  RECENT_FILE_LIMIT,
+  ROOT_FOLDER_NAME,
+} from "./storage.js";
 export {
   ADMIN_ROLE,
   DEFAULT_USER_ROLE,

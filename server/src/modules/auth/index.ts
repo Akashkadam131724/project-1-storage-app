@@ -1,2 +1,2 @@
 export { authRouter } from "./auth.routes.js";
-export { requireAdmin, requireAuth } from "./auth.middleware.js";
+export { requireAdmin, requireAuth, signedInUser } from "./auth.middleware.js";
