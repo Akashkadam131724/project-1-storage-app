@@ -1,3 +1,10 @@
+#!/usr/bin/env sh
+set -e
+
 cd server
+npx lint-staged
+npm run check
+
+cd ../client
 npx lint-staged
 npm run check
