@@ -1,9 +1,12 @@
 import { Schema, model, type InferSchemaType, type Types } from "mongoose";
 import {
   ADMIN_ROLE,
+  AUTH_PROVIDERS,
+  DEFAULT_AUTH_PROVIDER,
   DEFAULT_USER_ROLE,
   NAME_MIN_LENGTH,
   USER_ROLES,
+  type AuthProvider,
   type UserRole,
 } from "../../shared/constants/index.js";
 
@@ -22,7 +25,12 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-    passwordHash: { type: String, required: true, select: false },
+    passwordHash: { type: String, select: false },
+    authProvider: {
+      type: String,
+      enum: AUTH_PROVIDERS,
+      default: DEFAULT_AUTH_PROVIDER,
+    },
     rootDirId: {
       type: Schema.Types.ObjectId,
       ref: "Directory",
@@ -47,6 +55,8 @@ export type PublicUser = {
   role: UserRole;
   rootDirId: string;
   picture: string;
+  authProvider: AuthProvider;
+  hasPassword: boolean;
 };
 
 export function toPublicUser(user: UserDoc): PublicUser {
@@ -57,6 +67,8 @@ export function toPublicUser(user: UserDoc): PublicUser {
     role: user.role === ADMIN_ROLE ? ADMIN_ROLE : DEFAULT_USER_ROLE,
     rootDirId: user.rootDirId.toString(),
     picture: user.picture,
+    authProvider: user.authProvider,
+    hasPassword: Boolean(user.passwordHash),
   };
 }
 

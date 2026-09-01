@@ -14,6 +14,12 @@ const envSchema = z
     CLIENT_ORIGIN: z.string().default("http://localhost:5173"),
     MONGODB_URI: z.string().default("mongodb://127.0.0.1:27017/storage-app-v2"),
     COOKIE_SECRET: z.string().min(16).default("dev-only-cookie-secret-change"),
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GITHUB_CLIENT_ID: z.string().optional(),
+    GITHUB_CLIENT_SECRET: z.string().optional(),
+    GITHUB_CALLBACK_URL: z
+      .string()
+      .default("http://127.0.0.1:4000/api/auth/github/callback"),
   })
   .superRefine((value, ctx) => {
     if (

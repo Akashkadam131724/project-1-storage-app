@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { ADMIN_ROLE } from "../../shared/constants/index.js";
 import { ApiError, ErrorCode, HttpStatus } from "../../shared/http/index.js";
 import {
   clearSessionCookie,
@@ -32,5 +33,16 @@ export async function requireAuth(
   }
 
   req.user = user;
+  next();
+}
+
+export function requireAdmin(req: Request, _res: Response, next: NextFunction) {
+  if (!req.user || req.user.role !== ADMIN_ROLE) {
+    throw new ApiError({
+      code: ErrorCode.FORBIDDEN,
+      message: "Admin access required",
+      status: HttpStatus.FORBIDDEN,
+    });
+  }
   next();
 }

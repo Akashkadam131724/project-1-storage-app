@@ -11,6 +11,16 @@ export {
   SESSION_COOKIE_NAME,
   SESSION_TTL_MS,
   SESSION_TTL_SECONDS,
+  AUTH_PROVIDERS,
+  DEFAULT_AUTH_PROVIDER,
+  GITHUB_OAUTH_SCOPES,
+  GITHUB_STATE_COOKIE,
+  OAUTH_STATE_TTL_MS,
+  OTP_PURPOSE_RESET,
+  OTP_PURPOSE_SIGNUP,
+  OTP_PURPOSES,
+  type AuthProvider,
+  type OtpPurpose,
 } from "./auth.js";
 export { ROOT_FOLDER_NAME } from "./storage.js";
 export {

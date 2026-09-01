@@ -1,8 +1,18 @@
 import { Schema, model } from "mongoose";
-import { OTP_LENGTH, OTP_TTL_SECONDS } from "../../shared/constants/index.js";
+import {
+  OTP_LENGTH,
+  OTP_PURPOSE_SIGNUP,
+  OTP_PURPOSES,
+  OTP_TTL_SECONDS,
+} from "../../shared/constants/index.js";
 
 const otpSchema = new Schema({
   email: { type: String, required: true, unique: true, lowercase: true },
+  purpose: {
+    type: String,
+    enum: OTP_PURPOSES,
+    default: OTP_PURPOSE_SIGNUP,
+  },
   code: {
     type: String,
     required: true,

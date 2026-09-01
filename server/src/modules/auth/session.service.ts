@@ -26,11 +26,15 @@ export async function destroyUserSession(sessionId: string | undefined) {
   await UserSessionModel.findByIdAndDelete(sessionId);
 }
 
+export async function destroyAllUserSessions(userId: string) {
+  await UserSessionModel.deleteMany({ userId });
+}
+
 export async function getUserFromSession(sessionId: string) {
   const session = await UserSessionModel.findById(sessionId);
   if (!session) return null;
 
-  const user = await UserModel.findById(session.userId);
+  const user = await UserModel.findById(session.userId).select("+passwordHash");
   if (!user || user.isDeleted) return null;
 
   return toPublicUser(user);

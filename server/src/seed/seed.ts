@@ -1,8 +1,11 @@
 import { Types } from "mongoose";
-import { hashPassword } from "../modules/auth/password.js";
+import { hashPassword } from "../modules/auth/auth.service.js";
 import { DirectoryModel } from "../modules/directory/directory.model.js";
 import { UserModel } from "../modules/user/user.model.js";
-import { ROOT_FOLDER_NAME } from "../shared/constants/index.js";
+import {
+  DEFAULT_AUTH_PROVIDER,
+  ROOT_FOLDER_NAME,
+} from "../shared/constants/index.js";
 import { connectDb, disconnectDb } from "../shared/db/mongoose.js";
 import { logger } from "../shared/lib/logger.js";
 import { seedUsers, type SeedUser } from "./users.js";
@@ -17,6 +20,7 @@ async function upsertUser(account: SeedUser) {
     existing.name = account.name;
     existing.role = account.role;
     existing.passwordHash = passwordHash;
+    existing.authProvider = DEFAULT_AUTH_PROVIDER;
     existing.isDeleted = false;
     await existing.save();
     return "updated";
@@ -37,6 +41,7 @@ async function upsertUser(account: SeedUser) {
     name: account.name,
     email: account.email,
     passwordHash,
+    authProvider: DEFAULT_AUTH_PROVIDER,
     role: account.role,
     rootDirId,
   });
@@ -52,7 +57,9 @@ async function seed() {
     logger.info(`${action}: ${account.email} (${account.role})`);
   }
 
-  logger.info("Seed complete. Use the emails above with the shared local password.");
+  logger.info(
+    "Seed complete. Use the emails above with the shared local password.",
+  );
 
   await disconnectDb();
 }

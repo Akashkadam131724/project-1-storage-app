@@ -21,6 +21,22 @@
     {
       "key": "code",
       "value": ""
+    },
+    {
+      "key": "googleIdToken",
+      "value": ""
+    },
+    {
+      "key": "githubCode",
+      "value": ""
+    },
+    {
+      "key": "resetCode",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
     }
   ],
   "item": [
@@ -40,7 +56,7 @@
     },
     {
       "name": "Auth",
-      "description": "Email signup with a verification code, password login, and logout. The signed `sid` cookie is set on login.",
+      "description": "Email signup, password login, Google/GitHub, password reset, and logout. The signed `sid` cookie is set on login.",
       "item": [
         {
           "name": "Request signup code",
@@ -102,6 +118,89 @@
           }
         },
         {
+          "name": "Login with Google",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"{{googleIdToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/google",
+            "description": "Verifies a Google Identity Services ID token and sets the `sid` cookie. Returns 503 if GOOGLE_CLIENT_ID is not set."
+          }
+        },
+        {
+          "name": "Start GitHub login",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/github/start",
+            "description": "Returns `{ url }` for the GitHub authorize page and sets a short-lived `gh_oauth_state` cookie. Open `data.url` in a browser. Returns 503 if GitHub OAuth is not configured."
+          }
+        },
+        {
+          "name": "Login with GitHub code",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{githubCode}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/github",
+            "description": "Exchanges a GitHub OAuth code for a session. Use this from Postman after copying `code` from the callback URL. Browser flow uses GET /api/auth/github/callback instead."
+          }
+        },
+        {
+          "name": "Forgot password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.code) {",
+                  "  pm.collectionVariables.set('resetCode', json.data.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/password/forgot",
+            "description": "Always returns 200. In non-production a reset code is returned in `data.code` when the account exists."
+          }
+        },
+        {
+          "name": "Reset password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"code\": \"{{resetCode}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/password/reset",
+            "description": "Sets a new password and invalidates every session for that account."
+          }
+        },
+        {
           "name": "Logout",
           "request": {
             "method": "POST",
@@ -109,20 +208,166 @@
             "url": "{{baseUrl}}/api/auth/logout",
             "description": "Deletes the session and clears the cookie."
           }
+        },
+        {
+          "name": "Logout all sessions",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/logout-all",
+            "description": "Deletes every session for the signed-in user and clears the cookie."
+          }
         }
       ]
     },
     {
       "name": "Users",
-      "description": "Current user. Requires the `sid` cookie from Login.",
+      "description": "Current user profile, password, and account. Admin routes list and manage other users. Requires the `sid` cookie.",
       "item": [
         {
           "name": "Get me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('userId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/api/users/me",
-            "description": "Returns the signed-in profile."
+            "description": "Returns the signed-in profile, including `authProvider` and `hasPassword`."
+          }
+        },
+        {
+          "name": "Update profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ada Lovelace\"\n}"
+            },
+            "url": "{{baseUrl}}/api/users/me",
+            "description": "Updates the display name. Profile photo upload waits on storage."
+          }
+        },
+        {
+          "name": "Change password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"password2\"\n}"
+            },
+            "url": "{{baseUrl}}/api/users/me/password",
+            "description": "Changes password for accounts that already have one."
+          }
+        },
+        {
+          "name": "Set password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/users/me/password",
+            "description": "Sets the first password on a Google/GitHub-only account. Returns 409 if a password already exists."
+          }
+        },
+        {
+          "name": "Disable my account",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/me/disable",
+            "description": "Soft-deletes the current account and signs out every session."
+          }
+        },
+        {
+          "name": "Delete my account",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/me",
+            "description": "Permanently deletes the current account, sessions, and folders."
+          }
+        },
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users",
+            "description": "Admin only. Lists all accounts."
+          }
+        },
+        {
+          "name": "Logout user sessions",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/{{userId}}/logout",
+            "description": "Admin only. Signs the target user out of every device."
+          }
+        },
+        {
+          "name": "Disable user",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/{{userId}}/disable",
+            "description": "Admin only. Soft-deletes another account."
+          }
+        },
+        {
+          "name": "Restore user",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/{{userId}}/restore",
+            "description": "Admin only. Re-enables a soft-deleted account."
+          }
+        },
+        {
+          "name": "Change user role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"User\"\n}"
+            },
+            "url": "{{baseUrl}}/api/users/{{userId}}/role",
+            "description": "Admin only. Role is `User` or `Admin`."
+          }
+        },
+        {
+          "name": "Delete user",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/{{userId}}",
+            "description": "Admin only. Permanently deletes another account."
           }
         }
       ]

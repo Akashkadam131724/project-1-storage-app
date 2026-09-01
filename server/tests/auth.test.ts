@@ -86,6 +86,69 @@ describe("auth", () => {
     const me = await agent.get("/api/users/me");
     expect(me.status).toBe(401);
   });
+
+  it("resets a password with a verification code", async () => {
+    const agent = request.agent(app);
+    await signup(agent, "ada@example.com");
+    await agent.post("/api/auth/login").send({
+      email: "ada@example.com",
+      password: "password1",
+    });
+
+    const forgot = await request(app)
+      .post("/api/auth/password/forgot")
+      .send({ email: "ada@example.com" })
+      .expect(200);
+
+    expect(forgot.body.data.code).toMatch(/^\d{4}$/);
+
+    await request(app)
+      .post("/api/auth/password/reset")
+      .send({
+        email: "ada@example.com",
+        code: forgot.body.data.code,
+        password: "password2",
+      })
+      .expect(200);
+
+    const stale = await agent.get("/api/users/me");
+    expect(stale.status).toBe(401);
+
+    const login = await request(app).post("/api/auth/login").send({
+      email: "ada@example.com",
+      password: "password2",
+    });
+    expect(login.status).toBe(200);
+  });
+
+  it("does not leak whether an email exists on forgot password", async () => {
+    const response = await request(app)
+      .post("/api/auth/password/forgot")
+      .send({ email: "missing@example.com" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.code).toBeUndefined();
+  });
+
+  it("signs out every session", async () => {
+    const agent = request.agent(app);
+    await signup(agent, "ada@example.com");
+    await agent.post("/api/auth/login").send({
+      email: "ada@example.com",
+      password: "password1",
+    });
+
+    const other = request.agent(app);
+    await other.post("/api/auth/login").send({
+      email: "ada@example.com",
+      password: "password1",
+    });
+
+    await agent.post("/api/auth/logout-all").expect(200);
+
+    expect((await agent.get("/api/users/me")).status).toBe(401);
+    expect((await other.get("/api/users/me")).status).toBe(401);
+  });
 });
 
 describe("GET /api/users/me", () => {

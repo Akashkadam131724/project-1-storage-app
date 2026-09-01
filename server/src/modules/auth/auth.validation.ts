@@ -37,3 +37,29 @@ export const loginSchema = z.object({
   email,
   password: z.string().min(1, "Password is required"),
 });
+
+export const googleLoginSchema = z.object({
+  idToken: z.string().min(1, "Google ID token is required"),
+});
+
+export const githubLoginSchema = z.object({
+  code: z.string().min(1, "GitHub authorization code is required"),
+});
+
+export const forgotPasswordSchema = z.object({
+  email,
+});
+
+export const resetPasswordSchema = z.object({
+  email,
+  code: z
+    .string()
+    .length(OTP_LENGTH, `Code must be ${String(OTP_LENGTH)} digits`)
+    .regex(otpPattern, `Code must be ${String(OTP_LENGTH)} digits`),
+  password: z
+    .string()
+    .min(
+      PASSWORD_MIN_LENGTH,
+      `Password must be at least ${String(PASSWORD_MIN_LENGTH)} characters`,
+    ),
+});
