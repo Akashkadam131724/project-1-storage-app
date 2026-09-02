@@ -1,6 +1,7 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { ThemeSwitcher } from "../../components/ui/theme-switcher.tsx";
 import { BrandMark } from "../../components/ui/brand-mark.tsx";
+import { StorageHero } from "../../components/ui/storage-hero.tsx";
 import { TextField } from "../../components/ui/text-field.tsx";
 import { AuthBubbles } from "./AuthBubbles.tsx";
 
@@ -17,11 +18,7 @@ export function AuthShell({
 }) {
   return (
     <div className="relative isolate min-h-svh overflow-hidden">
-      <img
-        src="/login-hero.png"
-        alt=""
-        className="absolute inset-0 size-full object-cover"
-      />
+      <StorageHero className="absolute inset-0" />
       <div className="absolute inset-0 bg-black/40" aria-hidden />
       <AuthBubbles />
       <div className="absolute right-4 top-4 z-20 rounded-full bg-canvas/85 shadow-raise backdrop-blur-sm">

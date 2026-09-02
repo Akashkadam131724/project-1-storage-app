@@ -1,7 +1,6 @@
 import { KeyRound } from "lucide-react";
 import { KeepFilesCard } from "../../components/keep-files-card.tsx";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
-import { SignOutButton } from "../../components/sign-out-button.tsx";
 import { useAuth } from "../../contexts/auth-context.ts";
 import {
   ChangePasswordCard,
@@ -13,7 +12,7 @@ export function PasswordPage() {
   if (!user) return null;
 
   return (
-    <PageCanvas title="Reset password" back actions={<SignOutButton />}>
+    <PageCanvas title="Reset password" back>
       {user.isGuest ? (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <KeepFilesCard />

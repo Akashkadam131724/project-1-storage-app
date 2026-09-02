@@ -18,6 +18,7 @@ html[data-theme="ocean"] {
   --on-primary-container: #115e59;
   --scrim: rgb(0 0 0 / 32%);
   --raise: 0 1px 2px rgb(15 42 50 / 10%), 0 2px 8px rgb(15 118 110 / 10%);
+  --hero-filter: none;
 }
 
 html[data-theme="paper"] {
@@ -35,6 +36,7 @@ html[data-theme="paper"] {
   --on-primary-container: #0842a0;
   --scrim: rgb(0 0 0 / 32%);
   --raise: 0 1px 2px rgb(0 0 0 / 12%), 0 2px 6px rgb(0 0 0 / 8%);
+  --hero-filter: hue-rotate(110deg);
 }
 
 html[data-theme="sand"] {
@@ -52,6 +54,7 @@ html[data-theme="sand"] {
   --on-primary-container: #9a3412;
   --scrim: rgb(44 36 22 / 32%);
   --raise: 0 1px 2px rgb(44 36 22 / 10%), 0 2px 8px rgb(180 83 9 / 10%);
+  --hero-filter: hue-rotate(-148deg);
 }
 
 html[data-theme="midnight"],
@@ -70,6 +73,7 @@ html[data-theme="midnight"],
   --on-primary-container: #d3e3fd;
   --scrim: rgb(0 0 0 / 50%);
   --raise: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 28%);
+  --hero-filter: hue-rotate(110deg);
 }
 
 html[data-theme="nord"] {
@@ -87,6 +91,7 @@ html[data-theme="nord"] {
   --on-primary-container: #e0f2fe;
   --scrim: rgb(0 0 0 / 55%);
   --raise: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 28px rgb(8 47 73 / 35%);
+  --hero-filter: hue-rotate(50deg);
 }
 
 @theme inline {

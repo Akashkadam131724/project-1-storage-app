@@ -1,7 +1,6 @@
 import { KeyRound, ListChecks, Palette, Shield, User } from "lucide-react";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
 import { AccountTile } from "../../components/ui/account-row.tsx";
-import { SignOutButton } from "../../components/sign-out-button.tsx";
 import { useAuth } from "../../contexts/auth-context.ts";
 import { isAdmin } from "../../utils/roles.ts";
 import { paths } from "../../utils/paths.ts";
@@ -10,7 +9,7 @@ export function SettingsPage() {
   const { user } = useAuth();
 
   return (
-    <PageCanvas title="Settings" back actions={<SignOutButton />}>
+    <PageCanvas title="Settings" back>
       <p className="mb-6 max-w-2xl text-sm leading-relaxed text-muted">
         Manage your account and how Storage looks on this device.
       </p>

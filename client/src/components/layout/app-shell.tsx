@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Outlet, useLocation } from "react-router";
 import { OAuthNotice } from "../oauth-notice.tsx";
+import { StorageHero } from "../ui/storage-hero.tsx";
 import { AuthBubbles } from "../../pages/AuthPage/AuthBubbles.tsx";
 import { AppDrawer } from "./app-drawer.tsx";
 import { AppHeader } from "./app-header.tsx";
@@ -15,11 +16,7 @@ export function AppShell() {
 
   return (
     <div className="relative flex h-svh flex-col overflow-hidden bg-chrome">
-      <img
-        src="/login-hero.png"
-        alt=""
-        className="pointer-events-none absolute inset-0 size-full object-cover object-left opacity-70 dark:opacity-30"
-      />
+      <StorageHero className="pointer-events-none absolute inset-0 object-left opacity-70 dark:opacity-30" />
       <div
         className="pointer-events-none absolute inset-0 bg-chrome/35 dark:bg-chrome/70"
         aria-hidden

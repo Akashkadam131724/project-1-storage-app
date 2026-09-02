@@ -209,8 +209,8 @@ describe("app routes", () => {
     expect(screen.queryByText("Set a password")).not.toBeInTheDocument();
     expect(screen.queryByText("Danger zone")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Sign out" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: "Sign out" }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the password reset page", async () => {
@@ -236,8 +236,8 @@ describe("app routes", () => {
     expect(screen.queryByLabelText("Current password")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Sign out" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: "Sign out" }),
+    ).not.toBeInTheDocument();
   });
 
   it("sends account pages back to the previous route", async () => {
@@ -333,8 +333,8 @@ describe("app routes", () => {
     expect(screen.getByLabelText("Current password")).toBeInTheDocument();
     expect(screen.getByLabelText("New password")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Sign out" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: "Sign out" }),
+    ).not.toBeInTheDocument();
   });
 
   it("lists leftover roadmap work", async () => {

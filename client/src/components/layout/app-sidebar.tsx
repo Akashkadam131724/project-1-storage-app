@@ -19,7 +19,7 @@ export function AppSidebar({
 
   return (
     <aside className="flex h-full w-full shrink-0 flex-col lg:w-60">
-      <nav className="flex-1 overflow-y-auto py-1">
+      <nav className="flex-1 overflow-y-auto py-3">
         {items.map((item) => (
           <SideLink key={item.to} item={item} onNavigate={onNavigate} />
         ))}
@@ -56,7 +56,7 @@ function SideLink({
       onClick={onNavigate}
       className={({ isActive }) =>
         [
-          "me-2 mb-1 flex items-center gap-2.5 rounded-r-xl px-4 py-2.5 text-sm transition-colors",
+          "me-4 mb-1 flex items-center gap-2.5 rounded-r-xl px-4 py-2.5 text-sm transition-colors",
           isActive
             ? "bg-primary-container font-medium text-on-primary-container"
             : "text-ink hover:bg-canvas",

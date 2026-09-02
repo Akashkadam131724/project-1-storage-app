@@ -1,6 +1,5 @@
 import { Check } from "lucide-react";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
-import { SignOutButton } from "../../components/sign-out-button.tsx";
 import { useTheme } from "../../contexts/theme/theme-context.ts";
 import { themes, themesById } from "../../contexts/theme/themes.ts";
 import { ThemePicker } from "../../components/ui/theme-picker.tsx";
@@ -12,7 +11,7 @@ export function AppearancePage() {
   const darkCount = themes.length - lightCount;
 
   return (
-    <PageCanvas title="Appearance" back actions={<SignOutButton />}>
+    <PageCanvas title="Appearance" back>
       <p className="mb-6 max-w-2xl text-sm leading-relaxed text-muted">
         Choose a look for Storage. It is saved on this device.
       </p>
