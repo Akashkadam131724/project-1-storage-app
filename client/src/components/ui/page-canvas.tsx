@@ -1,6 +1,19 @@
-import type { ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { ArrowLeft } from "lucide-react";
 import { IconLink } from "./icon-button.tsx";
+
+const PageScrollContext = createContext<HTMLDivElement | null>(null);
+
+export function usePageScroll() {
+  return useContext(PageScrollContext);
+}
 
 type Props = {
   title: string;
@@ -10,6 +23,13 @@ type Props = {
 };
 
 export function PageCanvas({ title, backTo, actions, children }: Props) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
+
+  useLayoutEffect(() => {
+    setScrollEl(scrollRef.current);
+  }, []);
+
   return (
     <section className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-canvas lg:mb-3 lg:mr-3 lg:rounded-2xl lg:shadow-raise">
       <header className="flex items-center justify-between gap-3 px-3 pb-3 pt-4 lg:px-7 lg:pt-8">
@@ -25,9 +45,14 @@ export function PageCanvas({ title, backTo, actions, children }: Props) {
         </div>
         {actions}
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-20 lg:px-8 lg:pb-8">
-        {children}
-      </div>
+      <PageScrollContext.Provider value={scrollEl}>
+        <div
+          ref={scrollRef}
+          className="min-h-0 flex-1 overflow-y-auto px-4 pb-20 lg:px-8 lg:pb-8"
+        >
+          {children}
+        </div>
+      </PageScrollContext.Provider>
     </section>
   );
 }

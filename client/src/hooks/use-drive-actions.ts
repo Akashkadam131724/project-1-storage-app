@@ -38,6 +38,7 @@ function useInvalidateDrive() {
   return () =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: ["folder"] }),
+      queryClient.invalidateQueries({ queryKey: ["storage-usage"] }),
       queryClient.invalidateQueries({ queryKey: ["trash"] }),
       queryClient.invalidateQueries({ queryKey: ["starred"] }),
       queryClient.invalidateQueries({ queryKey: ["recent"] }),

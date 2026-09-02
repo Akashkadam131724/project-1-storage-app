@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   FileArchive,
   FileAudio,
@@ -19,7 +19,11 @@ import {
 } from "../../utils/format.ts";
 import { paths } from "../../utils/paths.ts";
 import { ItemMenu } from "./ItemMenu.tsx";
+import { LoadMoreSentinel, VirtualRows } from "./ItemVirtualList.tsx";
 import type { FolderLayout } from "./Toolbar.tsx";
+
+type DriveEntry =
+  { kind: "folder"; folder: PublicFolder } | { kind: "file"; file: PublicFile };
 
 type Props = {
   folders: PublicFolder[];
@@ -27,6 +31,9 @@ type Props = {
   layout?: FolderLayout;
   mode?: DriveMode;
   actions?: DriveActions;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  fetchNextPage?: () => unknown;
 };
 
 export function ItemGrid({
@@ -35,6 +42,9 @@ export function ItemGrid({
   layout = "grid",
   mode = "browse",
   actions,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
 }: Props) {
   if (folders.length === 0 && files.length === 0) {
     return (
@@ -45,41 +55,147 @@ export function ItemGrid({
   }
 
   const shared = { mode, actions };
+  const paging = { hasNextPage, isFetchingNextPage, fetchNextPage };
   if (layout === "list") {
-    return <ItemList folders={folders} files={files} {...shared} />;
+    return <ItemList folders={folders} files={files} {...shared} {...paging} />;
   }
 
+  return <ItemCards folders={folders} files={files} {...shared} {...paging} />;
+}
+
+function useGridColumns() {
+  const [columns, setColumns] = useState(gridColumns());
+
+  useEffect(() => {
+    function update() {
+      setColumns(gridColumns());
+    }
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  return columns;
+}
+
+function gridColumns() {
+  if (typeof window === "undefined") return 2;
+  if (window.innerWidth >= 1280) return 4;
+  if (window.innerWidth >= 1024) return 3;
+  return 2;
+}
+
+function driveEntries(
+  folders: PublicFolder[],
+  files: PublicFile[],
+): DriveEntry[] {
+  return [
+    ...folders.map((folder) => ({ kind: "folder" as const, folder })),
+    ...files.map((file) => ({ kind: "file" as const, file })),
+  ];
+}
+
+function ItemCards({
+  folders,
+  files,
+  mode,
+  actions,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
+}: Omit<Props, "layout">) {
+  const columns = useGridColumns();
+  const entries = driveEntries(folders, files);
+  const rows = Math.ceil(entries.length / columns);
+
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
-      {folders.map((folder) => (
-        <FolderCard key={folder.id} folder={folder} {...shared} />
-      ))}
-      {files.map((file) => (
-        <FileCard key={file.id} file={file} {...shared} />
-      ))}
-    </div>
+    <>
+      <VirtualRows count={rows} estimateSize={280}>
+        {(row) => {
+          const start = row * columns;
+          const slice = entries.slice(start, start + columns);
+          return (
+            <div
+              className="grid gap-4 pb-4"
+              style={{
+                gridTemplateColumns: `repeat(${String(columns)}, minmax(0, 1fr))`,
+              }}
+            >
+              {slice.map((entry) =>
+                entry.kind === "folder" ? (
+                  <FolderCard
+                    key={entry.folder.id}
+                    folder={entry.folder}
+                    mode={mode}
+                    actions={actions}
+                  />
+                ) : (
+                  <FileCard
+                    key={entry.file.id}
+                    file={entry.file}
+                    mode={mode}
+                    actions={actions}
+                  />
+                ),
+              )}
+            </div>
+          );
+        }}
+      </VirtualRows>
+      <LoadMoreSentinel
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        fetchNextPage={fetchNextPage}
+      />
+    </>
   );
 }
 
-function ItemList({ folders, files, mode, actions }: Omit<Props, "layout">) {
+function ItemList({
+  folders,
+  files,
+  mode,
+  actions,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
+}: Omit<Props, "layout">) {
+  const entries = driveEntries(folders, files);
+
   return (
-    <div className="lg:rounded-2xl lg:border lg:border-line">
-      <ListHeader />
-      <div className="divide-y divide-line overflow-hidden">
-        {folders.map((folder) => (
-          <FolderRow
-            key={folder.id}
-            folder={folder}
-            mode={mode}
-            actions={actions}
-          />
-        ))}
-        {files.map((file) => (
-          <FileRow key={file.id} file={file} mode={mode} actions={actions} />
-        ))}
+    <>
+      <div className="lg:rounded-2xl lg:border lg:border-line">
+        <ListHeader />
+        <div className="divide-y divide-line overflow-hidden">
+          <VirtualRows count={entries.length} estimateSize={56}>
+            {(index) => (
+              <ListEntry entry={entries[index]} mode={mode} actions={actions} />
+            )}
+          </VirtualRows>
+        </div>
       </div>
-    </div>
+      <LoadMoreSentinel
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        fetchNextPage={fetchNextPage}
+      />
+    </>
   );
+}
+
+function ListEntry({
+  entry,
+  mode,
+  actions,
+}: {
+  entry?: DriveEntry;
+  mode?: DriveMode;
+  actions?: DriveActions;
+}) {
+  if (!entry) return null;
+  if (entry.kind === "folder") {
+    return <FolderRow folder={entry.folder} mode={mode} actions={actions} />;
+  }
+  return <FileRow file={entry.file} mode={mode} actions={actions} />;
 }
 
 function ListHeader() {

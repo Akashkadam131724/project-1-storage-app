@@ -42,6 +42,7 @@ describe("auth", () => {
 
     expect(login.status).toBe(200);
     expect(login.body.data.email).toBe("ada@example.com");
+    expect(login.body.data.storageLimitBytes).toBe(500 * 1024 * 1024);
 
     const me = await agent.get("/api/users/me");
     expect(me.status).toBe(200);
@@ -157,6 +158,7 @@ describe("auth", () => {
     expect(guest.body.data.isGuest).toBe(true);
     expect(guest.body.data.name).toBe("Guest");
     expect(guest.body.data.hasPassword).toBe(false);
+    expect(guest.body.data.storageLimitBytes).toBe(25 * 1024 * 1024);
 
     const me = await agent.get("/api/users/me").expect(200);
     expect(me.body.data.id).toBe(guest.body.data.id);
@@ -189,6 +191,7 @@ describe("auth", () => {
     expect(me.body.data.isGuest).toBe(false);
     expect(me.body.data.email).toBe(email);
     expect(me.body.data.hasPassword).toBe(true);
+    expect(me.body.data.storageLimitBytes).toBe(500 * 1024 * 1024);
     expect(me.body.data.rootDirId).toBe(rootDirId);
 
     const listing = await agent.get("/api/directories").expect(200);

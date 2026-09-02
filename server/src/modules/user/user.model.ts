@@ -9,6 +9,7 @@ import {
   type AuthProvider,
   type UserRole,
 } from "../../shared/constants/index.js";
+import { storageQuotaBytes } from "../../shared/storage-quota.js";
 
 const userSchema = new Schema(
   {
@@ -59,6 +60,7 @@ export type PublicUser = {
   authProvider: AuthProvider;
   hasPassword: boolean;
   isGuest: boolean;
+  storageLimitBytes: number;
 };
 
 export function toPublicUser(user: UserDoc): PublicUser {
@@ -72,6 +74,7 @@ export function toPublicUser(user: UserDoc): PublicUser {
     authProvider: user.authProvider,
     hasPassword: Boolean(user.passwordHash),
     isGuest: Boolean(user.isGuest),
+    storageLimitBytes: storageQuotaBytes(Boolean(user.isGuest)),
   };
 }
 

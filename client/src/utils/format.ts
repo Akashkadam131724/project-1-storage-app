@@ -12,9 +12,6 @@ export function formatBytes(bytes: number) {
   return `${value.toFixed(digits)} ${units[unit]}`;
 }
 
-export const MAX_STORAGE_BYTES = 500 * 1024 * 1024;
-export const MAX_GUEST_STORAGE_BYTES = 25 * 1024 * 1024;
-
 export function formatDate(value: string) {
   if (!value) return "—";
   const date = new Date(value);

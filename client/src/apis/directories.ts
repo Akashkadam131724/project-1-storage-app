@@ -1,12 +1,12 @@
 import { apiRequest } from "./http.ts";
+import { listQuery } from "./listing.ts";
 import type { FolderListing, PublicFolder } from "./types.ts";
 
-const listQuery = "page=1&limit=100";
-
-export function getFolder(folderId?: string) {
+export function getFolder(folderId?: string, page = 1) {
+  const query = listQuery(page);
   const path = folderId
-    ? `/api/directories/${folderId}?${listQuery}`
-    : `/api/directories?${listQuery}`;
+    ? `/api/directories/${folderId}?${query}`
+    : `/api/directories?${query}`;
   return apiRequest<FolderListing>(path);
 }
 

@@ -1,9 +1,6 @@
 import { extname } from "node:path";
 import { Types, type HydratedDocument } from "mongoose";
-import {
-  GUEST_STORAGE_BYTES,
-  MAX_STORAGE_BYTES,
-} from "../../shared/constants/index.js";
+import { storageQuotaBytes } from "../../shared/storage-quota.js";
 import { uniqueCopyName } from "../../shared/lib/copy-name.js";
 import { ApiError, ErrorCode, HttpStatus } from "../../shared/http/index.js";
 import {
@@ -231,7 +228,7 @@ export async function assertStorageFits(userId: string, extraBytes: number) {
     UserModel.findById(userId).select("isGuest"),
   ]);
   const used = root?.size ?? 0;
-  const cap = user?.isGuest ? GUEST_STORAGE_BYTES : MAX_STORAGE_BYTES;
+  const cap = storageQuotaBytes(Boolean(user?.isGuest));
   if (used + extraBytes > cap) {
     throw new ApiError({
       code: ErrorCode.STORAGE_FULL,

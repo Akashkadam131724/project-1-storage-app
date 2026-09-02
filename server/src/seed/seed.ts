@@ -8,7 +8,8 @@ import {
 } from "../shared/constants/index.js";
 import { connectDb, disconnectDb } from "../shared/db/mongoose.js";
 import { logger } from "../shared/lib/logger.js";
-import { seedUsers, type SeedUser } from "./users.js";
+import { seedAdaDrive } from "./ada-drive.js";
+import { ADA_SEED_EMAIL, seedUsers, type SeedUser } from "./users.js";
 
 async function upsertUser(account: SeedUser) {
   const passwordHash = await hashPassword(account.password);
@@ -56,6 +57,15 @@ async function seed() {
     const action = await upsertUser(account);
     logger.info(`${action}: ${account.email} (${account.role})`);
   }
+
+  const ada = await UserModel.findOne({ email: ADA_SEED_EMAIL });
+  if (!ada) {
+    throw new Error(`Missing seed user ${ADA_SEED_EMAIL}`);
+  }
+  const drive = await seedAdaDrive(ada);
+  logger.info(
+    `Ada demo drive: ${String(drive.folders)} folders, ${String(drive.files)} files`,
+  );
 
   logger.info(
     "Seed complete. Use the emails above with the shared local password.",

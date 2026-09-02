@@ -5,6 +5,7 @@ import {
 } from "../shared/constants/index.js";
 
 export const SEED_PASSWORD = "password1";
+export const ADA_SEED_EMAIL = "ada@storage.app";
 
 export type SeedUser = {
   name: string;
@@ -22,7 +23,7 @@ export const seedUsers: SeedUser[] = [
   },
   {
     name: "Ada Lovelace",
-    email: "ada@storage.app",
+    email: ADA_SEED_EMAIL,
     password: SEED_PASSWORD,
     role: DEFAULT_USER_ROLE,
   },

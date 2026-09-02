@@ -3,13 +3,21 @@ import { Clock, Star, Trash2 } from "lucide-react";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
 import type { DriveMode } from "../../hooks/drive-types.ts";
 import { useDriveWorkspace } from "../../hooks/use-drive-workspace.ts";
-import { useRecent, useStarred, useTrash } from "../../hooks/use-library.ts";
+import {
+  flattenLibraryPages,
+  flattenRecentPages,
+  useRecent,
+  useStarred,
+  useTrash,
+} from "../../hooks/use-library.ts";
 import { DriveDialogs } from "../DirectoryPage/DriveDialogs.tsx";
 import { ItemGrid } from "../DirectoryPage/ItemGrid.tsx";
 import { paths } from "../../utils/paths.ts";
+import type { PublicFile, PublicFolder } from "../../apis/types.ts";
 
 export function TrashPage() {
   const query = useTrash();
+  const { folders, files } = flattenLibraryPages(query.data);
   return (
     <LibraryCanvas
       title="Trash"
@@ -18,14 +26,18 @@ export function TrashPage() {
       empty="Trash is empty"
       hint="Deleted files will appear here"
       loading={query.isPending}
-      folders={query.data?.folders.items ?? []}
-      files={query.data?.files.items ?? []}
+      folders={folders}
+      files={files}
+      hasNextPage={query.hasNextPage}
+      isFetchingNextPage={query.isFetchingNextPage}
+      fetchNextPage={query.fetchNextPage}
     />
   );
 }
 
 export function StarredPage() {
   const query = useStarred();
+  const { folders, files } = flattenLibraryPages(query.data);
   return (
     <LibraryCanvas
       title="Starred"
@@ -34,8 +46,11 @@ export function StarredPage() {
       empty="No starred items"
       hint="Star files and folders to find them quickly"
       loading={query.isPending}
-      folders={query.data?.folders.items ?? []}
-      files={query.data?.files.items ?? []}
+      folders={folders}
+      files={files}
+      hasNextPage={query.hasNextPage}
+      isFetchingNextPage={query.isFetchingNextPage}
+      fetchNextPage={query.fetchNextPage}
     />
   );
 }
@@ -51,7 +66,10 @@ export function RecentPage() {
       hint="Files you open will show up here"
       loading={query.isPending}
       folders={[]}
-      files={query.data?.items ?? []}
+      files={flattenRecentPages(query.data)}
+      hasNextPage={query.hasNextPage}
+      isFetchingNextPage={query.isFetchingNextPage}
+      fetchNextPage={query.fetchNextPage}
     />
   );
 }
@@ -65,6 +83,9 @@ function LibraryCanvas({
   loading,
   folders,
   files,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
 }: {
   title: string;
   icon: LucideIcon;
@@ -72,8 +93,11 @@ function LibraryCanvas({
   empty: string;
   hint: string;
   loading: boolean;
-  folders: Parameters<typeof ItemGrid>[0]["folders"];
-  files: Parameters<typeof ItemGrid>[0]["files"];
+  folders: PublicFolder[];
+  files: PublicFile[];
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => unknown;
 }) {
   const workspace = useDriveWorkspace();
   const isEmpty = !loading && folders.length === 0 && files.length === 0;
@@ -95,6 +119,9 @@ function LibraryCanvas({
             files={files}
             mode={mode}
             actions={workspace.actions}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            fetchNextPage={fetchNextPage}
           />
         )}
       </PageCanvas>

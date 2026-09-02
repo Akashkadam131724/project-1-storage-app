@@ -1,6 +1,10 @@
 import { config as loadEnv } from "dotenv";
 import { z } from "zod";
-import { DEFAULT_UPLOAD_DIR } from "../shared/constants/index.js";
+import {
+  DEFAULT_GUEST_STORAGE_BYTES,
+  DEFAULT_MAX_STORAGE_BYTES,
+  DEFAULT_UPLOAD_DIR,
+} from "../shared/constants/index.js";
 
 if (process.env.NODE_ENV !== "test") {
   loadEnv();
@@ -22,6 +26,16 @@ const envSchema = z
       .string()
       .default("http://127.0.0.1:4000/api/auth/github/callback"),
     UPLOAD_DIR: z.string().min(1).default(DEFAULT_UPLOAD_DIR),
+    MAX_STORAGE_BYTES: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(DEFAULT_MAX_STORAGE_BYTES),
+    GUEST_STORAGE_BYTES: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(DEFAULT_GUEST_STORAGE_BYTES),
   })
   .superRefine((value, ctx) => {
     if (

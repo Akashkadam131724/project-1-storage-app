@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router";
-import { useFolder } from "../../hooks/use-folder.ts";
+import { useFolder, flattenFolderPages } from "../../hooks/use-folder.ts";
 import { useDriveWorkspace } from "../../hooks/use-drive-workspace.ts";
 import { useAuth } from "../../contexts/auth-context.ts";
-import type { PublicFolder } from "../../apis/types.ts";
+import type {
+  FolderListing,
+  PublicFile,
+  PublicFolder,
+} from "../../apis/types.ts";
 import { folderOrHome, paths } from "../../utils/paths.ts";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
+import type { DriveActions } from "../../hooks/drive-types.ts";
 import { DriveDialogs } from "./DriveDialogs.tsx";
 import { ItemGrid } from "./ItemGrid.tsx";
 import { Toolbar, type FolderLayout } from "./Toolbar.tsx";
@@ -22,18 +27,14 @@ export function DirectoryPage() {
   const folder = useFolder(folderId);
   const workspace = useDriveWorkspace();
   const [layout, setLayout] = useState(readLayout);
-  const data = folder.listing.data;
-  const title = data?.folder.isRoot ? "Home" : (data?.folder.name ?? "Home");
+  const listing = folder.listing;
+  const { head, folders, files } = flattenFolderPages(listing.data);
+  const title = head?.folder.isRoot ? "Home" : (head?.folder.name ?? "Home");
   const busy = folder.create.isPending || folder.upload.isPending;
   const backTo =
-    data && !data.folder.isRoot
-      ? folderOrHome(data.folder.parentId, user?.rootDirId)
+    head && !head.folder.isRoot
+      ? folderOrHome(head.folder.parentId, user?.rootDirId)
       : undefined;
-
-  function changeLayout(next: FolderLayout) {
-    localStorage.setItem(layoutKey, next);
-    setLayout(next);
-  }
 
   return (
     <>
@@ -44,33 +45,68 @@ export function DirectoryPage() {
           <Toolbar
             busy={busy}
             layout={layout}
-            onLayoutChange={changeLayout}
+            onLayoutChange={(next) => {
+              localStorage.setItem(layoutKey, next);
+              setLayout(next);
+            }}
             onCreate={(name) => folder.create.mutate(name)}
-            onUpload={(files) => folder.upload.mutate(files)}
+            onUpload={(list) => folder.upload.mutate(list)}
           />
         }
       >
-        {data ? (
-          <FolderTrail ancestors={data.ancestors} current={data.folder} />
-        ) : null}
-        {folder.listing.isPending ? (
-          <p className="py-16 text-center text-sm text-muted">Loading…</p>
-        ) : null}
-        {folder.listing.isError ? (
-          <p className="py-16 text-center text-sm text-muted">
-            Could not load this folder
-          </p>
-        ) : null}
-        {data ? (
-          <ItemGrid
-            layout={layout}
-            folders={data.folders.items}
-            files={data.files.items}
-            actions={workspace.actions}
-          />
-        ) : null}
+        <FolderBody
+          head={head}
+          folders={folders}
+          files={files}
+          layout={layout}
+          listing={listing}
+          actions={workspace.actions}
+        />
       </PageCanvas>
       <DriveDialogs workspace={workspace} />
+    </>
+  );
+}
+
+function FolderBody({
+  head,
+  folders,
+  files,
+  layout,
+  listing,
+  actions,
+}: {
+  head: FolderListing | undefined;
+  folders: PublicFolder[];
+  files: PublicFile[];
+  layout: FolderLayout;
+  listing: ReturnType<typeof useFolder>["listing"];
+  actions: DriveActions;
+}) {
+  return (
+    <>
+      {head ? (
+        <FolderTrail ancestors={head.ancestors} current={head.folder} />
+      ) : null}
+      {listing.isPending ? (
+        <p className="py-16 text-center text-sm text-muted">Loading…</p>
+      ) : null}
+      {listing.isError ? (
+        <p className="py-16 text-center text-sm text-muted">
+          Could not load this folder
+        </p>
+      ) : null}
+      {head ? (
+        <ItemGrid
+          layout={layout}
+          folders={folders}
+          files={files}
+          actions={actions}
+          hasNextPage={listing.hasNextPage}
+          isFetchingNextPage={listing.isFetchingNextPage}
+          fetchNextPage={listing.fetchNextPage}
+        />
+      ) : null}
     </>
   );
 }

@@ -1,23 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { Cloud } from "lucide-react";
+import { Link } from "react-router";
 import { getFolder } from "../../apis/directories.ts";
 import { useAuth } from "../../contexts/auth-context.ts";
-import {
-  formatBytes,
-  MAX_GUEST_STORAGE_BYTES,
-  MAX_STORAGE_BYTES,
-} from "../../utils/format.ts";
-import { Link } from "react-router";
+import { formatBytes } from "../../utils/format.ts";
 import { paths } from "../../utils/paths.ts";
 
 export function StorageMeter() {
   const { user } = useAuth();
   const usage = useQuery({
-    queryKey: ["folder", "root"],
+    queryKey: ["storage-usage"],
     queryFn: () => getFolder(),
   });
   const used = usage.data?.folder.size ?? 0;
-  const cap = user?.isGuest ? MAX_GUEST_STORAGE_BYTES : MAX_STORAGE_BYTES;
+  const cap = user?.storageLimitBytes ?? 1;
   const percent = Math.min(100, (used / cap) * 100);
 
   return (

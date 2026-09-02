@@ -1,22 +1,45 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createFolder, getFolder } from "../apis/directories.ts";
 import { uploadFile } from "../apis/files.ts";
+import { nextListingPage } from "../apis/listing.ts";
+import type { FolderListing } from "../apis/types.ts";
 import { toastApiError } from "../utils/api-error.ts";
 
 export const folderKey = (folderId?: string) =>
   ["folder", folderId ?? "root"] as const;
 
+export function flattenFolderPages(data?: InfiniteData<FolderListing>) {
+  if (!data) return { head: undefined, folders: [], files: [] };
+  return {
+    head: data.pages[0],
+    folders: data.pages.flatMap((page) => page.folders.items),
+    files: data.pages.flatMap((page) => page.files.items),
+  };
+}
+
+export function useFolderListing(folderId?: string) {
+  return useInfiniteQuery({
+    queryKey: folderKey(folderId),
+    queryFn: ({ pageParam }) => getFolder(folderId, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (last) => nextListingPage(last.folders, last.files),
+  });
+}
+
 export function useFolder(folderId?: string) {
   const queryClient = useQueryClient();
-  const listing = useQuery({
-    queryKey: folderKey(folderId),
-    queryFn: () => getFolder(folderId),
-  });
+  const listing = useFolderListing(folderId);
 
   const invalidate = () =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: ["folder"] }),
+      queryClient.invalidateQueries({ queryKey: ["storage-usage"] }),
       queryClient.invalidateQueries({ queryKey: ["trash"] }),
     ]);
 
