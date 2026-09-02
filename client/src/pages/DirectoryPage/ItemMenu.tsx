@@ -1,7 +1,7 @@
-import { useEffect, useState, type MouseEvent } from "react";
-import { createPortal } from "react-dom";
+import { useState, type MouseEvent } from "react";
 import { MoreVertical } from "lucide-react";
 import { fileDownloadPath } from "../../apis/files.ts";
+import { placePopover, Popover } from "../../components/ui/popover.tsx";
 import type {
   DriveActions,
   DriveMode,
@@ -18,6 +18,9 @@ type Props = {
 };
 
 type MenuBox = { top: number; left: number };
+
+const MENU_WIDTH = 176;
+const ROW_HEIGHT = 36;
 
 export function ItemMenu({
   kind,
@@ -36,7 +39,12 @@ export function ItemMenu({
       setBox(null);
       return;
     }
-    setBox(menuBox(event.currentTarget.getBoundingClientRect(), items.length));
+    setBox(
+      placePopover(event.currentTarget.getBoundingClientRect(), {
+        width: MENU_WIDTH,
+        height: items.length * ROW_HEIGHT + 8,
+      }),
+    );
   }
 
   return (
@@ -54,79 +62,18 @@ export function ItemMenu({
         <MoreVertical className="size-4" />
       </button>
       {box ? (
-        <MenuList items={items} box={box} onClose={() => setBox(null)} />
+        <Popover box={box} onClose={() => setBox(null)}>
+          {items.map((item) => (
+            <MenuEntry
+              key={item.label}
+              item={item}
+              onClose={() => setBox(null)}
+            />
+          ))}
+        </Popover>
       ) : null}
     </div>
   );
-}
-
-function MenuList({
-  items,
-  box,
-  onClose,
-}: {
-  items: ActionItem[];
-  box: MenuBox;
-  onClose: () => void;
-}) {
-  useCloseOnMove(onClose);
-
-  return createPortal(
-    <>
-      <button
-        type="button"
-        aria-label="Close menu"
-        className="fixed inset-0 z-50 cursor-default"
-        onClick={onClose}
-      />
-      <div
-        role="menu"
-        className="fixed z-50 w-44 rounded-xl border border-line bg-canvas py-1 shadow-raise"
-        style={{ top: box.top, left: box.left }}
-      >
-        {items.map((item) => (
-          <MenuEntry key={item.label} item={item} onClose={onClose} />
-        ))}
-      </div>
-    </>,
-    document.body,
-  );
-}
-
-function useCloseOnMove(onClose: () => void) {
-  useEffect(() => {
-    const close = () => onClose();
-    document.addEventListener("scroll", close, true);
-    window.addEventListener("resize", close);
-    return () => {
-      document.removeEventListener("scroll", close, true);
-      window.removeEventListener("resize", close);
-    };
-  }, [onClose]);
-}
-
-const MENU_WIDTH = 176;
-const ROW_HEIGHT = 36;
-const EDGE = 12;
-
-function menuBox(anchor: DOMRect, count: number) {
-  const height = count * ROW_HEIGHT + 8;
-  const gap = 6;
-  const floor = bottomReserve();
-  const openUp = window.innerHeight - anchor.bottom < height + floor;
-  const top = openUp
-    ? Math.max(EDGE, anchor.top - height - gap)
-    : anchor.bottom + gap;
-  const left = Math.min(
-    Math.max(EDGE, anchor.right - MENU_WIDTH),
-    window.innerWidth - MENU_WIDTH - EDGE,
-  );
-  return { top, left };
-}
-
-function bottomReserve() {
-  const desktop = window.matchMedia("(min-width: 1024px)").matches;
-  return desktop ? EDGE : 80;
 }
 
 type ActionItem = {

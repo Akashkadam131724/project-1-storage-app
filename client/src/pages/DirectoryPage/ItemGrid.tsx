@@ -25,6 +25,7 @@ import {
   formatShortDate,
 } from "../../utils/format.ts";
 import { paths } from "../../utils/paths.ts";
+import { StatusMessage } from "../../components/ui/status-message.tsx";
 import { ItemMenu } from "./ItemMenu.tsx";
 import { LoadMoreSentinel, VirtualRows } from "./ItemVirtualList.tsx";
 import type { FolderLayout } from "../../hooks/use-folder-layout.ts";
@@ -57,11 +58,7 @@ export function ItemGrid({
   fetchNextPage,
 }: Props) {
   if (folders.length === 0 && files.length === 0) {
-    return (
-      <p className="py-16 text-center text-sm text-muted">
-        This folder is empty
-      </p>
-    );
+    return <StatusMessage>This folder is empty</StatusMessage>;
   }
 
   const entries = items ?? driveEntries(folders, files);

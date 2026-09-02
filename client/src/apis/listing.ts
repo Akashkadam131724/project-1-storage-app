@@ -79,6 +79,13 @@ export function toDriveItems(entries: ListingEntry[]): DriveItem[] {
   );
 }
 
+export function mixedItemsFromPages(
+  pages: Array<{ entries?: Paginated<ListingEntry> }>,
+) {
+  if (pages[0]?.entries == null) return undefined;
+  return pages.flatMap((page) => toDriveItems(page.entries?.items ?? []));
+}
+
 export function nextPagedPage(page: Paginated<unknown>) {
   return page.page < page.totalPages ? page.page + 1 : undefined;
 }

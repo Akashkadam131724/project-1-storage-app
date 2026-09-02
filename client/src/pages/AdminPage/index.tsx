@@ -10,6 +10,8 @@ import {
 } from "../../apis/users.ts";
 import type { AdminUser, UserRole } from "../../apis/types.ts";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
+import { StatusMessage } from "../../components/ui/status-message.tsx";
+import { Button } from "../../components/ui/button.tsx";
 import { useAuth } from "../../contexts/auth-context.ts";
 import { toastApiError } from "../../utils/api-error.ts";
 import { paths } from "../../utils/paths.ts";
@@ -24,13 +26,9 @@ export function AdminPage() {
 
   return (
     <PageCanvas title="Admin" backTo={paths.home}>
-      {query.isPending ? (
-        <p className="py-16 text-center text-sm text-muted">Loading…</p>
-      ) : null}
+      {query.isPending ? <StatusMessage>Loading…</StatusMessage> : null}
       {query.isError ? (
-        <p className="py-16 text-center text-sm text-muted">
-          Could not load users
-        </p>
+        <StatusMessage>Could not load users</StatusMessage>
       ) : null}
       {query.data ? (
         <div className="overflow-hidden rounded-2xl border border-line">
@@ -129,17 +127,16 @@ function TinyButton({
   danger?: boolean;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      size="xs"
+      variant="ghost"
       className={
-        danger
-          ? "rounded-full px-2 py-1 text-xs text-red-600 hover:bg-chrome"
-          : "rounded-full px-2 py-1 text-xs text-ink hover:bg-chrome"
+        danger ? "text-red-600 hover:bg-chrome" : "text-ink hover:bg-chrome"
       }
       onClick={onClick}
     >
       {label}
-    </button>
+    </Button>
   );
 }
 

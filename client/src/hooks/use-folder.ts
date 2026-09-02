@@ -9,11 +9,11 @@ import { createFolder, getFolder } from "../apis/directories.ts";
 import { uploadFile } from "../apis/files.ts";
 import {
   DEFAULT_LISTING_SORT,
+  mixedItemsFromPages,
   nextListingPage,
-  toDriveItems,
   type ListingSort,
 } from "../apis/listing.ts";
-import type { DriveItem, FolderListing } from "../apis/types.ts";
+import type { FolderListing } from "../apis/types.ts";
 import { toastApiError } from "../utils/api-error.ts";
 
 export const folderKey = (folderId?: string, sort?: ListingSort) =>
@@ -27,7 +27,7 @@ export function flattenFolderPages(data?: InfiniteData<FolderListing>) {
     head: data.pages[0],
     folders: data.pages.flatMap((page) => page.folders.items),
     files: data.pages.flatMap((page) => page.files.items),
-    items: mixedItems(data.pages),
+    items: mixedItemsFromPages(data.pages),
   };
 }
 
@@ -81,9 +81,4 @@ export function useFolder(
   });
 
   return { listing, create, upload };
-}
-
-function mixedItems(pages: FolderListing[]): DriveItem[] | undefined {
-  if (pages[0]?.entries == null) return undefined;
-  return pages.flatMap((page) => toDriveItems(page.entries?.items ?? []));
 }

@@ -3,9 +3,11 @@ import { KeyRound, Palette, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { updateProfile } from "../../apis/users.ts";
 import { KeepFilesCard } from "../../components/keep-files-card.tsx";
+import { Button } from "../../components/ui/button.tsx";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
 import { AccountList, AccountRow } from "../../components/ui/account-row.tsx";
 import { SignOutButton } from "../../components/sign-out-button.tsx";
+import { TextField } from "../../components/ui/text-field.tsx";
 import { UserAvatar } from "../../components/ui/user-avatar.tsx";
 import { useAuth } from "../../contexts/auth-context.ts";
 import { toastApiError } from "../../utils/api-error.ts";
@@ -104,23 +106,23 @@ function ProfileCard({
             className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end"
             onSubmit={(event) => void handleSubmit(event)}
           >
-            <label className="block min-w-0 flex-1 text-sm">
-              <span className="font-medium text-muted">Name</span>
-              <input
-                className="mt-1.5 w-full rounded-lg border border-line bg-search px-3.5 py-2.5 text-sm outline-none ring-primary/20 transition focus:border-primary focus:ring-2"
+            <div className="min-w-0 flex-1">
+              <TextField
+                label="Name"
                 value={value}
                 minLength={2}
                 required
                 onChange={(event) => setValue(event.target.value)}
               />
-            </label>
-            <button
+            </div>
+            <Button
               type="submit"
-              className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-on-primary sm:mb-px"
+              size="lg"
+              className="px-5 sm:mb-px"
               disabled={busy}
             >
               Save name
-            </button>
+            </Button>
           </form>
         </div>
       </div>

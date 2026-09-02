@@ -3,15 +3,11 @@ import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { registerAccount, requestSignupCode, signIn } from "../../apis/auth.ts";
 import { ApiError } from "../../apis/http.ts";
+import { Button } from "../../components/ui/button.tsx";
 import { useAuth } from "../../contexts/auth-context.ts";
 import { GuestRoute } from "../../components/routes/guest-route.tsx";
 import { paths } from "../../utils/paths.ts";
-import {
-  AuthField,
-  AuthShell,
-  authFormClass,
-  authSubmitClass,
-} from "./AuthShell.tsx";
+import { AuthField, AuthShell, authFormClass } from "./AuthShell.tsx";
 
 export function RegisterPage() {
   return (
@@ -74,13 +70,20 @@ function RegisterForm() {
           awaitingCode={awaitingCode}
           onChange={setDraft}
         />
-        <button type="submit" className={authSubmitClass} disabled={busy}>
+        <Button
+          type="submit"
+          shape="rounded"
+          size="lg"
+          block
+          disabled={busy}
+          className="font-semibold"
+        >
           {awaitingCode
             ? converting
               ? "Save account"
               : "Create account"
             : "Send code"}
-        </button>
+        </Button>
       </form>
       <p className="mt-6 text-center text-sm text-muted">
         Already have an account?{" "}

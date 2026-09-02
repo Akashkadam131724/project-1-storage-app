@@ -1,6 +1,6 @@
-import { Link } from "react-router";
 import { Shield } from "lucide-react";
 import { paths } from "../utils/paths.ts";
+import { ButtonLink } from "./ui/button.tsx";
 
 export function KeepFilesCard() {
   return (
@@ -14,12 +14,9 @@ export function KeepFilesCard() {
       <p className="mt-1 mb-4 text-sm leading-relaxed text-on-primary-container/80">
         This guest drive is temporary. Create an account to keep your files.
       </p>
-      <Link
-        to={paths.register}
-        className="inline-flex rounded-full bg-primary px-4 py-2 text-sm font-medium text-on-primary"
-      >
+      <ButtonLink to={paths.register} size="md">
         Create an account
-      </Link>
+      </ButtonLink>
     </section>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLocalPref } from "./use-local-pref.ts";
 
 export type FolderLayout = "grid" | "list";
 
@@ -9,12 +9,9 @@ export function readFolderLayout(): FolderLayout {
 }
 
 export function useFolderLayout() {
-  const [layout, setLayout] = useState(readFolderLayout);
+  const [layout, setLayout] = useLocalPref(readFolderLayout, (next) =>
+    localStorage.setItem(layoutKey, next),
+  );
 
-  function change(next: FolderLayout) {
-    localStorage.setItem(layoutKey, next);
-    setLayout(next);
-  }
-
-  return { layout, setLayout: change };
+  return { layout, setLayout };
 }

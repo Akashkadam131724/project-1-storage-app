@@ -10,6 +10,7 @@ import {
 } from "../../apis/auth.ts";
 import { ApiError } from "../../apis/http.ts";
 import { OAuthNotice } from "../../components/oauth-notice.tsx";
+import { Button } from "../../components/ui/button.tsx";
 import { useAuth } from "../../contexts/auth-context.ts";
 import { GuestRoute } from "../../components/routes/guest-route.tsx";
 import { env } from "../../utils/env.ts";
@@ -19,12 +20,7 @@ import {
   loadRememberedEmail,
   persistRememberedEmail,
 } from "../../utils/remember-login.ts";
-import {
-  AuthField,
-  AuthShell,
-  authFormClass,
-  authSubmitClass,
-} from "./AuthShell.tsx";
+import { AuthField, AuthShell, authFormClass } from "./AuthShell.tsx";
 
 export function LoginPage() {
   return (
@@ -95,9 +91,16 @@ function LoginForm() {
             Forgot password?
           </Link>
         </p>
-        <button type="submit" className={authSubmitClass} disabled={busy}>
+        <Button
+          type="submit"
+          shape="rounded"
+          size="lg"
+          block
+          disabled={busy}
+          className="font-semibold"
+        >
           {busy ? "Signing in…" : "Sign in"}
-        </button>
+        </Button>
         <ContinueAsGuest />
         <GithubSignIn />
         {env.VITE_GOOGLE_CLIENT_ID ? <GoogleSignIn /> : null}
@@ -133,9 +136,12 @@ function ContinueAsGuest() {
   }
 
   return (
-    <button
-      type="button"
-      className="w-full rounded-lg border border-line bg-canvas py-2.5 text-sm font-medium text-ink hover:bg-chrome disabled:opacity-60"
+    <Button
+      variant="outline"
+      shape="rounded"
+      size="lg"
+      block
+      className="font-medium"
       disabled={busy}
       onClick={() => void handleClick()}
     >
@@ -144,7 +150,7 @@ function ContinueAsGuest() {
         : user?.isGuest
           ? "Back to files"
           : "Continue as guest"}
-    </button>
+    </Button>
   );
 }
 
@@ -163,15 +169,18 @@ function GithubSignIn() {
   }
 
   return (
-    <button
-      type="button"
-      className="flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-canvas py-2.5 text-sm font-medium text-ink hover:bg-chrome disabled:opacity-60"
+    <Button
+      variant="outline"
+      shape="rounded"
+      size="lg"
+      block
+      className="font-medium"
       disabled={busy}
       onClick={() => void handleClick()}
     >
       <GithubMark />
       {busy ? "Redirecting…" : "Continue with GitHub"}
-    </button>
+    </Button>
   );
 }
 

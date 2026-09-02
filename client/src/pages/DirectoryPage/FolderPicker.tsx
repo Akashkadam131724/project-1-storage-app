@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Folder } from "lucide-react";
 import { getFolder } from "../../apis/directories.ts";
+import { Button } from "../../components/ui/button.tsx";
+import { DialogActions } from "../../components/ui/dialog-actions.tsx";
+import { FolderTrail } from "../../components/ui/folder-trail.tsx";
 import { Modal } from "../../components/ui/modal.tsx";
 
 type Props = {
@@ -33,7 +36,7 @@ export function FolderPicker({
   return (
     <Modal open={open} title={title} onClose={onClose}>
       {data ? (
-        <PickerTrail
+        <FolderTrail
           ancestors={data.ancestors}
           current={data.folder}
           onOpen={setFolderId}
@@ -50,64 +53,20 @@ export function FolderPicker({
           />
         )}
       </div>
-      <div className="mt-4 flex justify-end gap-2">
-        <button type="button" className="text-sm text-muted" onClick={onClose}>
+      <DialogActions>
+        <Button variant="ghost" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
-          className="rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-on-primary disabled:opacity-50"
+        </Button>
+        <Button
           disabled={!canPick}
           onClick={() => {
             if (here) onPick(here);
           }}
         >
           {title}
-        </button>
-      </div>
+        </Button>
+      </DialogActions>
     </Modal>
-  );
-}
-
-function PickerTrail({
-  ancestors,
-  current,
-  onOpen,
-}: {
-  ancestors: { id: string; name: string; isRoot: boolean }[];
-  current: { id: string; name: string; isRoot: boolean };
-  onOpen: (id: string | undefined) => void;
-}) {
-  return (
-    <nav className="mb-3 flex flex-wrap gap-1 text-sm text-muted">
-      <button
-        type="button"
-        className="hover:text-ink"
-        onClick={() => onOpen(undefined)}
-      >
-        Home
-      </button>
-      {ancestors
-        .filter((folder) => !folder.isRoot)
-        .map((folder) => (
-          <span key={folder.id} className="flex gap-1">
-            <span>/</span>
-            <button
-              type="button"
-              className="hover:text-ink"
-              onClick={() => onOpen(folder.id)}
-            >
-              {folder.name}
-            </button>
-          </span>
-        ))}
-      {current.isRoot ? null : (
-        <span className="flex gap-1 text-ink">
-          <span>/</span>
-          <span>{current.name}</span>
-        </span>
-      )}
-    </nav>
   );
 }
 

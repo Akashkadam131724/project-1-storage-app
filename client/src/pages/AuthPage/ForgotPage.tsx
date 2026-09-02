@@ -2,15 +2,11 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { requestPasswordReset, resetPassword } from "../../apis/auth.ts";
+import { Button } from "../../components/ui/button.tsx";
 import { GuestRoute } from "../../components/routes/guest-route.tsx";
 import { toastApiError } from "../../utils/api-error.ts";
 import { paths } from "../../utils/paths.ts";
-import {
-  AuthField,
-  AuthShell,
-  authFormClass,
-  authSubmitClass,
-} from "./AuthShell.tsx";
+import { AuthField, AuthShell, authFormClass } from "./AuthShell.tsx";
 
 export function ForgotPage() {
   return (
@@ -74,9 +70,16 @@ function ForgotForm() {
             onPassword={setPassword}
           />
         ) : null}
-        <button type="submit" className={authSubmitClass} disabled={busy}>
+        <Button
+          type="submit"
+          shape="rounded"
+          size="lg"
+          block
+          disabled={busy}
+          className="font-semibold"
+        >
           {awaitingCode ? "Update password" : "Send code"}
-        </button>
+        </Button>
       </form>
       <p className="mt-6 text-center text-sm text-muted">
         <Link className="font-medium text-primary" to={paths.login}>

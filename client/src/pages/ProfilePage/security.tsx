@@ -7,8 +7,11 @@ import {
   disableMe,
   setPassword,
 } from "../../apis/users.ts";
+import { Button } from "../../components/ui/button.tsx";
+import { DialogActions } from "../../components/ui/dialog-actions.tsx";
 import { Modal } from "../../components/ui/modal.tsx";
 import { PanelCard } from "../../components/ui/panel-card.tsx";
+import { TextField } from "../../components/ui/text-field.tsx";
 import { useAuth } from "../../contexts/auth-context.ts";
 import { toastApiError } from "../../utils/api-error.ts";
 
@@ -54,13 +57,9 @@ export function ChangePasswordCard() {
           onChange={setNext}
         />
         <div className="sm:col-span-2">
-          <button
-            type="submit"
-            className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-on-primary"
-            disabled={busy}
-          >
+          <Button type="submit" size="md" disabled={busy}>
             Update password
-          </button>
+          </Button>
         </div>
       </form>
     </PanelCard>
@@ -101,13 +100,9 @@ export function SetPasswordCard() {
           value={password}
           onChange={setValue}
         />
-        <button
-          type="submit"
-          className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-on-primary"
-          disabled={busy}
-        >
+        <Button type="submit" size="md" disabled={busy}>
           Set password
-        </button>
+        </Button>
       </form>
     </PanelCard>
   );
@@ -134,14 +129,14 @@ export function SessionsCard() {
       title="Sessions"
       description="Sign out of Storage on every device using this account."
     >
-      <button
-        type="button"
-        className="rounded-full border border-line px-4 py-2 text-sm text-ink hover:bg-chrome"
+      <Button
+        variant="outline"
+        size="md"
         disabled={busy}
         onClick={() => void handleLogoutAll()}
       >
         Sign out everywhere
-      </button>
+      </Button>
     </PanelCard>
   );
 }
@@ -169,20 +164,16 @@ export function DangerCard() {
       description="Disable pauses sign-in. Delete removes this account and its files."
     >
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="rounded-full border border-red-500/25 px-4 py-2 text-sm text-red-600 hover:bg-red-500/10"
+        <Button
+          variant="danger-outline"
+          size="md"
           onClick={() => setConfirm("disable")}
         >
           Disable account
-        </button>
-        <button
-          type="button"
-          className="rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white"
-          onClick={() => setConfirm("delete")}
-        >
+        </Button>
+        <Button variant="danger" size="md" onClick={() => setConfirm("delete")}>
           Delete account
-        </button>
+        </Button>
       </div>
       <Modal
         open={Boolean(confirm)}
@@ -194,22 +185,14 @@ export function DangerCard() {
             ? "Your files and folders will be removed. This cannot be undone."
             : "You will be signed out and will not be able to sign in until an admin restores the account."}
         </p>
-        <div className="mt-4 flex justify-end gap-2">
-          <button
-            type="button"
-            className="text-sm text-muted"
-            onClick={() => setConfirm(null)}
-          >
+        <DialogActions>
+          <Button variant="ghost" onClick={() => setConfirm(null)}>
             Cancel
-          </button>
-          <button
-            type="button"
-            className="rounded-full bg-red-600 px-3 py-1.5 text-sm font-medium text-white"
-            onClick={() => void runDanger()}
-          >
+          </Button>
+          <Button variant="danger" onClick={() => void runDanger()}>
             Confirm
-          </button>
-        </div>
+          </Button>
+        </DialogActions>
       </Modal>
     </PanelCard>
   );
@@ -227,17 +210,14 @@ function PasswordField({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="block text-sm" htmlFor={id}>
-      <span className="text-muted">{label}</span>
-      <input
-        id={id}
-        type="password"
-        minLength={8}
-        required
-        className="mt-1.5 w-full rounded-xl border border-line bg-search px-3.5 py-2.5 text-sm outline-none ring-primary/20 transition focus:border-primary focus:ring-2"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      />
-    </label>
+    <TextField
+      id={id}
+      label={label}
+      type="password"
+      minLength={8}
+      required
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    />
   );
 }

@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import { useFolder, flattenFolderPages } from "../../hooks/use-folder.ts";
 import { useDriveWorkspace } from "../../hooks/use-drive-workspace.ts";
 import { useAuth } from "../../contexts/auth-context.ts";
@@ -9,8 +9,10 @@ import type {
   PublicFolder,
 } from "../../apis/types.ts";
 import type { ListingSort } from "../../apis/listing.ts";
-import { folderOrHome, paths } from "../../utils/paths.ts";
+import { folderOrHome } from "../../utils/paths.ts";
+import { FolderTrail } from "../../components/ui/folder-trail.tsx";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
+import { StatusMessage } from "../../components/ui/status-message.tsx";
 import type { DriveActions } from "../../hooks/drive-types.ts";
 import {
   useFolderLayout,
@@ -97,13 +99,9 @@ function FolderBody({
       {head ? (
         <FolderTrail ancestors={head.ancestors} current={head.folder} />
       ) : null}
-      {listing.isPending ? (
-        <p className="py-16 text-center text-sm text-muted">Loading…</p>
-      ) : null}
+      {listing.isPending ? <StatusMessage>Loading…</StatusMessage> : null}
       {listing.isError ? (
-        <p className="py-16 text-center text-sm text-muted">
-          Could not load this folder
-        </p>
+        <StatusMessage>Could not load this folder</StatusMessage>
       ) : null}
       {head ? (
         <ItemGrid
@@ -120,37 +118,5 @@ function FolderBody({
         />
       ) : null}
     </>
-  );
-}
-
-function FolderTrail({
-  ancestors,
-  current,
-}: {
-  ancestors: PublicFolder[];
-  current: PublicFolder;
-}) {
-  if (current.isRoot) return null;
-
-  return (
-    <nav className="mb-4 flex flex-wrap items-center gap-1 text-sm text-muted">
-      <Link className="hover:text-ink" to={paths.home}>
-        Home
-      </Link>
-      {ancestors
-        .filter((folder) => !folder.isRoot)
-        .map((folder) => (
-          <span key={folder.id} className="flex gap-1">
-            <span>/</span>
-            <Link className="hover:text-ink" to={paths.folder(folder.id)}>
-              {folder.name}
-            </Link>
-          </span>
-        ))}
-      <span className="flex gap-1 text-ink">
-        <span>/</span>
-        <span>{current.name}</span>
-      </span>
-    </nav>
   );
 }

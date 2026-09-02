@@ -9,6 +9,8 @@ import {
 } from "../../apis/files.ts";
 import type { PublicFile } from "../../apis/types.ts";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
+import { StatusMessage } from "../../components/ui/status-message.tsx";
+import { ButtonAnchor } from "../../components/ui/button.tsx";
 import {
   useDriveWorkspace,
   type DriveWorkspace,
@@ -42,13 +44,9 @@ export function FilePage() {
           file ? <FileActions file={file} workspace={workspace} /> : null
         }
       >
-        {query.isPending ? (
-          <p className="py-16 text-center text-sm text-muted">Loading…</p>
-        ) : null}
+        {query.isPending ? <StatusMessage>Loading…</StatusMessage> : null}
         {query.isError ? (
-          <p className="py-16 text-center text-sm text-muted">
-            Could not load this file
-          </p>
+          <StatusMessage>Could not load this file</StatusMessage>
         ) : null}
         {file ? <FileBody file={file} /> : null}
       </PageCanvas>
@@ -66,13 +64,14 @@ function FileActions({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <a
+      <ButtonAnchor
         href={fileDownloadPath(file.id)}
-        className="flex items-center gap-2 rounded-full px-3 py-2 text-sm text-ink hover:bg-chrome"
+        variant="outline"
+        className="px-3 py-2"
       >
         <Download className="size-4" />
         Download
-      </a>
+      </ButtonAnchor>
       <ItemMenu
         kind="file"
         id={file.id}
@@ -172,9 +171,7 @@ function PdfFrame({ fileId, title }: { fileId: string; title: string }) {
     );
   }
   if (!url) {
-    return (
-      <p className="py-16 text-center text-sm text-muted">Loading preview…</p>
-    );
+    return <StatusMessage>Loading preview…</StatusMessage>;
   }
   return (
     <iframe

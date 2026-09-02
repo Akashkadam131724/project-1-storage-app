@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { signOut } from "../apis/auth.ts";
 import { useAuth } from "../contexts/auth-context.ts";
 import { paths } from "../utils/paths.ts";
+import { Button, ButtonLink } from "./ui/button.tsx";
+import { DialogActions } from "./ui/dialog-actions.tsx";
 import { Modal } from "./ui/modal.tsx";
 
 export function SignOutButton() {
@@ -30,14 +31,10 @@ export function SignOutButton() {
 
   return (
     <>
-      <button
-        type="button"
-        className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-500/20"
-        onClick={requestSignOut}
-      >
+      <Button variant="danger-soft" shape="rounded" onClick={requestSignOut}>
         <LogOut className="size-4" />
         Sign out
-      </button>
+      </Button>
       <Modal
         open={confirmGuest}
         title="Leave this guest drive?"
@@ -47,29 +44,20 @@ export function SignOutButton() {
           Guest files are temporary. Sign out now and this drive will be
           deleted. Create an account if you want to keep your files.
         </p>
-        <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
-          <button
-            type="button"
-            className="text-sm text-muted"
-            onClick={() => setConfirmGuest(false)}
-          >
+        <DialogActions>
+          <Button variant="ghost" onClick={() => setConfirmGuest(false)}>
             Cancel
-          </button>
-          <Link
+          </Button>
+          <ButtonLink
             to={paths.register}
-            className="rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-on-primary"
             onClick={() => setConfirmGuest(false)}
           >
             Create an account
-          </Link>
-          <button
-            type="button"
-            className="rounded-full bg-red-600 px-3 py-1.5 text-sm font-medium text-white"
-            onClick={() => void handleSignOut()}
-          >
+          </ButtonLink>
+          <Button variant="danger" onClick={() => void handleSignOut()}>
             Sign out
-          </button>
-        </div>
+          </Button>
+        </DialogActions>
       </Modal>
     </>
   );

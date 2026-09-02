@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { Clock, Star, Trash2 } from "lucide-react";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
+import { StatusMessage } from "../../components/ui/status-message.tsx";
 import type { DriveMode } from "../../hooks/drive-types.ts";
 import { useDriveWorkspace } from "../../hooks/use-drive-workspace.ts";
 import {
@@ -143,7 +144,7 @@ function LibraryCanvas({
         }
       >
         {loading ? (
-          <p className="py-16 text-center text-sm text-muted">Loading…</p>
+          <StatusMessage>Loading…</StatusMessage>
         ) : isEmpty ? (
           <div className="py-20 text-center">
             <Icon className="mx-auto mb-4 size-20 text-subtle" />

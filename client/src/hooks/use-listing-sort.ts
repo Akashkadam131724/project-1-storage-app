@@ -1,9 +1,9 @@
-import { useState } from "react";
 import {
   DEFAULT_LISTING_SORT,
   parseListingSort,
   type ListingSort,
 } from "../apis/listing.ts";
+import { useLocalPref } from "./use-local-pref.ts";
 
 const sortKey = "storage-sort";
 
@@ -18,12 +18,9 @@ export function readListingSort(): ListingSort {
 }
 
 export function useListingSort() {
-  const [sort, setSort] = useState(readListingSort);
+  const [sort, setSort] = useLocalPref(readListingSort, (next) =>
+    localStorage.setItem(sortKey, JSON.stringify(next)),
+  );
 
-  function change(next: ListingSort) {
-    localStorage.setItem(sortKey, JSON.stringify(next));
-    setSort(next);
-  }
-
-  return { sort, setSort: change };
+  return { sort, setSort };
 }

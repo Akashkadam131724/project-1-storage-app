@@ -1,15 +1,10 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { ThemeSwitcher } from "../../components/ui/theme-switcher.tsx";
 import { BrandMark } from "../../components/ui/brand-mark.tsx";
+import { TextField } from "../../components/ui/text-field.tsx";
 import { AuthBubbles } from "./AuthBubbles.tsx";
 
 export const authFormClass = "mt-6 space-y-5";
-
-export const authFieldClass =
-  "mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-sm text-ink outline-none transition-shadow placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20";
-
-export const authSubmitClass =
-  "w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-on-primary transition-colors hover:opacity-90 disabled:opacity-60";
 
 export function AuthShell({
   title,
@@ -48,12 +43,13 @@ export function AuthField({
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & { id: string; label: string }) {
   return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-ink">
-        {label}
-      </label>
-      <input id={id} className={authFieldClass} {...props} />
-    </div>
+    <TextField
+      id={id}
+      label={label}
+      labelClass="font-medium text-ink"
+      fill="canvas"
+      {...props}
+    />
   );
 }
 

@@ -1,5 +1,4 @@
-import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { useState, type MouseEvent, type ReactNode } from "react";
 import { ArrowUpDown, Check } from "lucide-react";
 import {
   listingSortForField,
@@ -8,6 +7,7 @@ import {
   type SortBy,
   type SortDir,
 } from "../../apis/listing.ts";
+import { placePopover, Popover } from "../../components/ui/popover.tsx";
 
 type Props = {
   sort: ListingSort;
@@ -31,7 +31,12 @@ export function SortMenu({ sort, onChange, showFolders = true }: Props) {
       setBox(null);
       return;
     }
-    setBox(menuBox(event.currentTarget.getBoundingClientRect(), showFolders));
+    setBox(
+      placePopover(event.currentTarget.getBoundingClientRect(), {
+        width: 224,
+        height: showFolders ? 360 : 280,
+      }),
+    );
   }
 
   return (
@@ -53,13 +58,19 @@ export function SortMenu({ sort, onChange, showFolders = true }: Props) {
         <span className="hidden sm:inline">Sort</span>
       </button>
       {box ? (
-        <SortPanel
-          sort={sort}
+        <Popover
           box={box}
-          showFolders={showFolders}
-          onChange={onChange}
+          widthClass="w-56"
+          label="Sort"
+          closeLabel="Close sort menu"
           onClose={() => setBox(null)}
-        />
+        >
+          <SortPanel
+            sort={sort}
+            showFolders={showFolders}
+            onChange={onChange}
+          />
+        </Popover>
       ) : null}
     </div>
   );
@@ -67,75 +78,56 @@ export function SortMenu({ sort, onChange, showFolders = true }: Props) {
 
 function SortPanel({
   sort,
-  box,
   showFolders,
   onChange,
-  onClose,
 }: {
   sort: ListingSort;
-  box: MenuBox;
   showFolders: boolean;
   onChange: (sort: ListingSort) => void;
-  onClose: () => void;
 }) {
-  useCloseOnMove(onClose);
   const directions = directionOptions(sort.sortBy);
 
-  return createPortal(
+  return (
     <>
-      <button
-        type="button"
-        aria-label="Close sort menu"
-        className="fixed inset-0 z-50 cursor-default"
-        onClick={onClose}
-      />
-      <div
-        role="menu"
-        aria-label="Sort"
-        className="fixed z-50 w-56 rounded-xl border border-line bg-canvas py-1 shadow-raise"
-        style={{ top: box.top, left: box.left }}
-      >
-        <Section title="Sort by">
-          {SORT_FIELDS.map((field) => (
+      <Section title="Sort by">
+        {SORT_FIELDS.map((field) => (
+          <Choice
+            key={field.value}
+            label={field.label}
+            selected={sort.sortBy === field.value}
+            onSelect={() => onChange(listingSortForField(sort, field.value))}
+          />
+        ))}
+      </Section>
+      <Divider />
+      <Section title="Sort direction">
+        {directions.map((option) => (
+          <Choice
+            key={option.value}
+            label={option.label}
+            selected={sort.sortDir === option.value}
+            onSelect={() => onChange({ ...sort, sortDir: option.value })}
+          />
+        ))}
+      </Section>
+      {showFolders ? (
+        <>
+          <Divider />
+          <Section title="Folders">
             <Choice
-              key={field.value}
-              label={field.label}
-              selected={sort.sortBy === field.value}
-              onSelect={() => onChange(listingSortForField(sort, field.value))}
+              label="On top"
+              selected={sort.folders === "top"}
+              onSelect={() => changeFolders(sort, "top", onChange)}
             />
-          ))}
-        </Section>
-        <Divider />
-        <Section title="Sort direction">
-          {directions.map((option) => (
             <Choice
-              key={option.value}
-              label={option.label}
-              selected={sort.sortDir === option.value}
-              onSelect={() => onChange({ ...sort, sortDir: option.value })}
+              label="Mixed with files"
+              selected={sort.folders === "mixed"}
+              onSelect={() => changeFolders(sort, "mixed", onChange)}
             />
-          ))}
-        </Section>
-        {showFolders ? (
-          <>
-            <Divider />
-            <Section title="Folders">
-              <Choice
-                label="On top"
-                selected={sort.folders === "top"}
-                onSelect={() => changeFolders(sort, "top", onChange)}
-              />
-              <Choice
-                label="Mixed with files"
-                selected={sort.folders === "mixed"}
-                onSelect={() => changeFolders(sort, "mixed", onChange)}
-              />
-            </Section>
-          </>
-        ) : null}
-      </div>
-    </>,
-    document.body,
+          </Section>
+        </>
+      ) : null}
+    </>
   );
 }
 
@@ -196,34 +188,4 @@ function directionOptions(
     { value: "desc", label: "New to old" },
     { value: "asc", label: "Old to new" },
   ];
-}
-
-function useCloseOnMove(onClose: () => void) {
-  useEffect(() => {
-    const close = () => onClose();
-    document.addEventListener("scroll", close, true);
-    window.addEventListener("resize", close);
-    return () => {
-      document.removeEventListener("scroll", close, true);
-      window.removeEventListener("resize", close);
-    };
-  }, [onClose]);
-}
-
-const MENU_WIDTH = 224;
-const EDGE = 12;
-
-function menuBox(anchor: DOMRect, showFolders: boolean) {
-  const height = showFolders ? 360 : 280;
-  const gap = 6;
-  const floor = window.matchMedia("(min-width: 1024px)").matches ? EDGE : 80;
-  const openUp = window.innerHeight - anchor.bottom < height + floor;
-  const top = openUp
-    ? Math.max(EDGE, anchor.top - height - gap)
-    : anchor.bottom + gap;
-  const left = Math.min(
-    Math.max(EDGE, anchor.right - MENU_WIDTH),
-    window.innerWidth - MENU_WIDTH - EDGE,
-  );
-  return { top, left };
 }

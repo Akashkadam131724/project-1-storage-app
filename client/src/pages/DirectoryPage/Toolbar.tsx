@@ -1,6 +1,8 @@
 import { LayoutGrid, List, Plus, Upload } from "lucide-react";
 import { useRef, useState } from "react";
+import { Button } from "../../components/ui/button.tsx";
 import { IconButton } from "../../components/ui/icon-button.tsx";
+import { TextField } from "../../components/ui/text-field.tsx";
 import type { ListingSort } from "../../apis/listing.ts";
 import type { FolderLayout } from "../../hooks/use-folder-layout.ts";
 import { SortMenu } from "./SortMenu.tsx";
@@ -41,24 +43,24 @@ export function Toolbar({
           }}
         />
       ) : (
-        <button
-          type="button"
-          className="hidden items-center gap-2 rounded-full bg-primary-container px-3 py-2 text-sm font-medium text-on-primary-container sm:flex"
+        <Button
+          variant="soft"
+          className="hidden px-3 py-2 sm:flex"
           onClick={() => setCreating(true)}
         >
           <Plus className="size-4" />
           New
-        </button>
+        </Button>
       )}
-      <button
-        type="button"
-        className="flex items-center gap-2 rounded-full px-3 py-2 text-sm text-ink hover:bg-chrome"
+      <Button
+        variant="outline"
+        className="px-3 py-2"
         disabled={busy}
         onClick={() => fileInput.current?.click()}
       >
         <Upload className="size-4" />
         Upload
-      </button>
+      </Button>
       <input
         ref={fileInput}
         type="file"
@@ -149,23 +151,21 @@ function CreateField({
         if (next) onCreate(next);
       }}
     >
-      <input
-        autoFocus
-        className="w-36 rounded-full border border-line bg-search px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary"
-        placeholder="Folder name"
-        value={name}
-        onChange={(event) => setName(event.target.value)}
-      />
-      <button
-        type="submit"
-        className="text-sm font-medium text-primary"
-        disabled={busy}
-      >
+      <div className="w-36">
+        <TextField
+          autoFocus
+          shape="pill"
+          placeholder="Folder name"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        />
+      </div>
+      <Button type="submit" variant="link" disabled={busy}>
         Create
-      </button>
-      <button type="button" className="text-sm text-muted" onClick={onCancel}>
+      </Button>
+      <Button type="button" variant="ghost" onClick={onCancel}>
         Cancel
-      </button>
+      </Button>
     </form>
   );
 }

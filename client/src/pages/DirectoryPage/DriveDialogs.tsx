@@ -1,5 +1,8 @@
 import { useState } from "react";
+import { Button } from "../../components/ui/button.tsx";
+import { DialogActions } from "../../components/ui/dialog-actions.tsx";
 import { Modal } from "../../components/ui/modal.tsx";
+import { TextField } from "../../components/ui/text-field.tsx";
 import type { DriveWorkspace } from "../../hooks/use-drive-workspace.ts";
 import { FolderPicker } from "./FolderPicker.tsx";
 
@@ -58,27 +61,18 @@ function RenameDialog({
           if (next) onSubmit(next);
         }}
       >
-        <input
+        <TextField
           autoFocus
-          className="w-full rounded-lg border border-line bg-search px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+          className="px-3 py-2"
           value={value}
           onChange={(event) => setValue(event.target.value)}
         />
-        <div className="mt-4 flex justify-end gap-2">
-          <button
-            type="button"
-            className="text-sm text-muted"
-            onClick={onClose}
-          >
+        <DialogActions>
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            type="submit"
-            className="rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-on-primary"
-          >
-            Save
-          </button>
-        </div>
+          </Button>
+          <Button type="submit">Save</Button>
+        </DialogActions>
       </form>
     </Modal>
   );
@@ -96,18 +90,14 @@ function PurgeDialog({
   return (
     <Modal open={open} title="Delete forever?" onClose={onClose}>
       <p className="text-sm text-muted">This cannot be undone.</p>
-      <div className="mt-4 flex justify-end gap-2">
-        <button type="button" className="text-sm text-muted" onClick={onClose}>
+      <DialogActions>
+        <Button variant="ghost" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
-          className="rounded-full bg-red-600 px-3 py-1.5 text-sm font-medium text-white"
-          onClick={onConfirm}
-        >
+        </Button>
+        <Button variant="danger" onClick={onConfirm}>
           Delete
-        </button>
-      </div>
+        </Button>
+      </DialogActions>
     </Modal>
   );
 }
