@@ -56,10 +56,10 @@ export async function downloadFile(req: Request, res: Response) {
   const user = signedInUser(req);
   const { fileId } = req.params as FileIdParams;
   const { file, contents } = await readOwnedFile(user.id, fileId);
-  res.setHeader("Content-Type", file.mimeType);
+  res.setHeader("Content-Type", file.mimeType || "application/octet-stream");
   res.setHeader(
     "Content-Disposition",
-    `attachment; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+    contentDisposition(file.name, req.query),
   );
   return res.status(HttpStatus.OK).send(contents);
 }
@@ -128,4 +128,10 @@ export async function unstarOwnedFile(req: Request, res: Response) {
   const { fileId } = req.params as FileIdParams;
   const file = await unstarFile(user.id, fileId);
   return ApiResponse.success(res, { message: "File unstarred", data: file });
+}
+
+function contentDisposition(name: string, query: Request["query"]) {
+  const download = query.download === "1" || query.download === "true";
+  const mode = download ? "attachment" : "inline";
+  return `${mode}; filename*=UTF-8''${encodeURIComponent(name)}`;
 }

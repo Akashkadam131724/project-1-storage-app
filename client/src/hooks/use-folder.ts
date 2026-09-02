@@ -1,17 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { createFolder, getFolder, trashFolder } from "../apis/directories.ts";
-import { trashFile, uploadFile } from "../apis/files.ts";
-import { ApiError } from "../apis/http.ts";
+import { createFolder, getFolder } from "../apis/directories.ts";
+import { uploadFile } from "../apis/files.ts";
+import { toastApiError } from "../utils/api-error.ts";
 
 export const folderKey = (folderId?: string) =>
   ["folder", folderId ?? "root"] as const;
-
-function toastError(error: unknown) {
-  const message =
-    error instanceof ApiError ? error.message : "Something went wrong";
-  toast.error(message);
-}
 
 export function useFolder(folderId?: string) {
   const queryClient = useQueryClient();
@@ -32,11 +26,11 @@ export function useFolder(folderId?: string) {
       toast.success("Folder created");
       await invalidate();
     },
-    onError: toastError,
+    onError: (error: unknown) => toastApiError(error),
   });
 
   const upload = useMutation({
-    mutationFn: async (files: FileList) => {
+    mutationFn: async (files: File[]) => {
       for (const file of files) {
         await uploadFile(file, folderId);
       }
@@ -45,26 +39,8 @@ export function useFolder(folderId?: string) {
       toast.success("Upload complete");
       await invalidate();
     },
-    onError: toastError,
+    onError: (error: unknown) => toastApiError(error),
   });
 
-  const removeFolder = useMutation({
-    mutationFn: trashFolder,
-    onSuccess: async () => {
-      toast.success("Moved to trash");
-      await invalidate();
-    },
-    onError: toastError,
-  });
-
-  const removeFile = useMutation({
-    mutationFn: trashFile,
-    onSuccess: async () => {
-      toast.success("Moved to trash");
-      await invalidate();
-    },
-    onError: toastError,
-  });
-
-  return { listing, create, upload, removeFolder, removeFile };
+  return { listing, create, upload };
 }

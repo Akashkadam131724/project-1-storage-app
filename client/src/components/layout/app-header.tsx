@@ -1,14 +1,15 @@
 import { HelpCircle, Menu, Search, Settings } from "lucide-react";
 import { ThemeSwitcher } from "../ui/theme-switcher.tsx";
 import { BrandMark } from "../ui/brand-mark.tsx";
-import { IconButton } from "../ui/icon-button.tsx";
+import { IconButton, IconLink } from "../ui/icon-button.tsx";
+import { paths } from "../../utils/paths.ts";
 import { UserMenu } from "./user-menu.tsx";
 
 export function AppHeader({ onMenuClick }: { onMenuClick: () => void }) {
   return (
-    <header className="bg-chrome px-3 py-3 lg:px-4">
+    <header className="px-3 py-3 lg:px-4">
       <div className="flex items-center gap-2">
-        <div className="flex w-auto shrink-0 items-center lg:w-60">
+        <div className="flex w-auto shrink-0 items-center lg:w-54">
           <span className="lg:hidden">
             <IconButton label="Open menu" onClick={onMenuClick}>
               <Menu className="size-5" />
@@ -32,9 +33,9 @@ export function AppHeader({ onMenuClick }: { onMenuClick: () => void }) {
             <IconButton label="Help">
               <HelpCircle className="size-5" />
             </IconButton>
-            <IconButton label="Settings">
+            <IconLink label="Settings" to={paths.settings}>
               <Settings className="size-5" />
-            </IconButton>
+            </IconLink>
           </span>
           <ThemeSwitcher />
           <UserMenu />

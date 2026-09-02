@@ -1,13 +1,24 @@
 import { LayoutGrid, List, Plus, Upload } from "lucide-react";
 import { useRef, useState } from "react";
+import { IconButton } from "../../components/ui/icon-button.tsx";
+
+export type FolderLayout = "grid" | "list";
 
 type Props = {
   busy: boolean;
+  layout: FolderLayout;
+  onLayoutChange: (layout: FolderLayout) => void;
   onCreate: (name: string) => void;
-  onUpload: (files: FileList) => void;
+  onUpload: (files: File[]) => void;
 };
 
-export function Toolbar({ busy, onCreate, onUpload }: Props) {
+export function Toolbar({
+  busy,
+  layout,
+  onLayoutChange,
+  onCreate,
+  onUpload,
+}: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [creating, setCreating] = useState(false);
 
@@ -34,7 +45,7 @@ export function Toolbar({ busy, onCreate, onUpload }: Props) {
       )}
       <button
         type="button"
-        className="hidden items-center gap-2 rounded-full px-3 py-2 text-sm text-ink hover:bg-chrome sm:flex"
+        className="flex items-center gap-2 rounded-full px-3 py-2 text-sm text-ink hover:bg-chrome"
         disabled={busy}
         onClick={() => fileInput.current?.click()}
       >
@@ -47,18 +58,26 @@ export function Toolbar({ busy, onCreate, onUpload }: Props) {
         className="hidden"
         multiple
         onChange={(event) => {
-          if (event.target.files?.length) {
-            onUpload(event.target.files);
-            event.target.value = "";
-          }
+          const selected = event.target.files;
+          if (!selected?.length) return;
+          onUpload(Array.from(selected));
+          event.target.value = "";
         }}
       />
-      <span className="hidden text-muted sm:flex">
+      <IconButton
+        label="Grid view"
+        pressed={layout === "grid"}
+        onClick={() => onLayoutChange("grid")}
+      >
         <LayoutGrid className="size-5" />
-      </span>
-      <span className="hidden text-muted sm:flex">
+      </IconButton>
+      <IconButton
+        label="List view"
+        pressed={layout === "list"}
+        onClick={() => onLayoutChange("list")}
+      >
         <List className="size-5" />
-      </span>
+      </IconButton>
     </div>
   );
 }

@@ -50,4 +50,26 @@ describe("apiRequest", () => {
     );
     await expect(apiRequest("/api/users/me")).rejects.toBeInstanceOf(ApiError);
   });
+
+  it("does not force JSON content-type for FormData uploads", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: () =>
+        Promise.resolve({
+          success: true,
+          message: "File uploaded",
+          data: { id: "1" },
+        }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await apiRequest("/api/files", {
+      method: "POST",
+      body: new FormData(),
+    });
+
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(init.headers).toBeUndefined();
+  });
 });

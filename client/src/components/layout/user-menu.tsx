@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
-import { LogOut, X } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { LogOut, Settings, X } from "lucide-react";
 import { toast } from "sonner";
 import { signOut } from "../../apis/auth.ts";
 import { useAuth } from "../../contexts/auth-context.ts";
@@ -89,9 +89,17 @@ function UserMenuCard({
         <UserAvatar name={name} picture={picture} size="lg" />
         <p className="mt-2 font-semibold text-ink">Hello {name}</p>
       </div>
+      <Link
+        to={paths.settings}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-canvas px-4 py-3 text-sm text-ink hover:bg-line"
+        onClick={onClose}
+      >
+        <Settings className="size-4 text-muted" />
+        Settings
+      </Link>
       <button
         type="button"
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-canvas px-4 py-3 text-sm text-ink hover:bg-line"
+        className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-canvas px-4 py-3 text-sm text-ink hover:bg-line"
         onClick={onSignOut}
       >
         <LogOut className="size-4 text-muted" />

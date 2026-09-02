@@ -6,16 +6,20 @@ export type Paginated<T> = {
   totalPages: number;
 };
 
+export type UserRole = "User" | "Admin";
+
 export type PublicUser = {
   id: string;
   name: string;
   email: string;
-  role: "user" | "admin";
+  role: UserRole;
   rootDirId: string;
   picture: string;
   authProvider: "password" | "google" | "github";
   hasPassword: boolean;
 };
+
+export type AdminUser = PublicUser & { isDeleted: boolean };
 
 export type PublicFolder = {
   id: string;

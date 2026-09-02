@@ -36,7 +36,7 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}) {
   const response = await fetch(`${env.VITE_API_URL}${path}`, {
     ...init,
     credentials: "include",
-    headers: jsonHeaders(init),
+    headers: requestHeaders(init),
   });
 
   const body = (await response.json()) as ApiSuccess<T> | ApiFailure;
@@ -53,10 +53,16 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}) {
   return body.data as T;
 }
 
+function requestHeaders(init: RequestInit) {
+  if (init.body instanceof FormData) {
+    return init.headers;
+  }
+  return jsonHeaders(init);
+}
+
 function jsonHeaders(init: RequestInit) {
   const headers = new Headers(init.headers);
-  const isFormData = init.body instanceof FormData;
-  if (!isFormData && !headers.has("Content-Type")) {
+  if (!headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
   return headers;

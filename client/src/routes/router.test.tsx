@@ -13,7 +13,7 @@ const demoUser = {
   id: "1",
   name: "Ada Lovelace",
   email: "ada@storage.app",
-  role: "user",
+  role: "User",
   rootDirId: "root1",
   picture: "",
   authProvider: "password",
@@ -55,6 +55,7 @@ function jsonFail(status: number, code: string, message: string) {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  localStorage.removeItem("storage-layout");
 });
 
 function requestUrl(input: RequestInfo | URL) {
@@ -150,6 +151,38 @@ describe("app routes", () => {
     expect(
       screen.getByRole("checkbox", { name: "Remember me on this device" }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Forgot password?" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Continue with GitHub" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the password reset page", async () => {
+    mockSignedOut();
+    renderPath(paths.forgot);
+    expect(
+      await screen.findByRole("heading", { name: "Reset your password" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders settings for a signed-in user", async () => {
+    mockSignedIn();
+    renderPath(paths.settings);
+    expect(
+      await screen.findByRole("heading", { name: "Settings" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("ada@storage.app")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back" })).toBeInTheDocument();
+  });
+
+  it("keeps non-admins off the admin page", async () => {
+    mockSignedIn();
+    renderPath(paths.admin);
+    expect(
+      await screen.findByRole("heading", { name: "Home" }),
+    ).toBeInTheDocument();
   });
 
   it("renders a not-found page", () => {
@@ -190,5 +223,18 @@ describe("app routes", () => {
       screen.getByRole("button", { name: "Midnight" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Nord" })).toBeInTheDocument();
+  });
+
+  it("switches Home between grid and list view", async () => {
+    mockSignedIn();
+    const user = userEvent.setup();
+    renderPath(paths.home);
+    await screen.findByRole("heading", { name: "Home" });
+    const list = screen.getByRole("button", { name: "List view" });
+    const grid = screen.getByRole("button", { name: "Grid view" });
+    expect(grid).toHaveAttribute("aria-pressed", "true");
+    await user.click(list);
+    expect(list).toHaveAttribute("aria-pressed", "true");
+    expect(grid).toHaveAttribute("aria-pressed", "false");
   });
 });

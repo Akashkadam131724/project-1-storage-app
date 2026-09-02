@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Clock, Home, Star, Trash2 } from "lucide-react";
+import { Clock, Home, Shield, Star, Trash2 } from "lucide-react";
 import { paths } from "../../utils/paths.ts";
 
 export type NavItem = {
@@ -17,3 +17,9 @@ export const sideNav: NavItem[] = [
 ];
 
 export const mobileNav: NavItem[] = sideNav;
+
+export const adminNav: NavItem = {
+  to: paths.admin,
+  label: "Admin",
+  icon: Shield,
+};

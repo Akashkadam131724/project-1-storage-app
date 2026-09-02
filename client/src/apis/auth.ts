@@ -34,6 +34,32 @@ export function signInWithGoogle(idToken: string) {
   });
 }
 
+export function startGithubSignIn() {
+  return apiRequest<{ url: string }>("/api/auth/github/start");
+}
+
+export function requestPasswordReset(email: string) {
+  return apiRequest<{ code?: string }>("/api/auth/password/forgot", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetPassword(input: {
+  email: string;
+  code: string;
+  password: string;
+}) {
+  return apiRequest<undefined>("/api/auth/password/reset", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
 export function signOut() {
   return apiRequest<undefined>("/api/auth/logout", { method: "POST" });
+}
+
+export function signOutAll() {
+  return apiRequest<undefined>("/api/auth/logout-all", { method: "POST" });
 }

@@ -45,6 +45,13 @@ describe("files", () => {
       .get(`/api/files/${fileId}/content`)
       .expect(200);
     expect(download.text).toBe("hello storage");
+    expect(download.headers["content-disposition"]).toMatch(/^inline;/);
+
+    const saved = await agent
+      .get(`/api/files/${fileId}/content`)
+      .query({ download: "1" })
+      .expect(200);
+    expect(saved.headers["content-disposition"]).toMatch(/^attachment;/);
 
     await agent
       .patch(`/api/files/${fileId}`)
