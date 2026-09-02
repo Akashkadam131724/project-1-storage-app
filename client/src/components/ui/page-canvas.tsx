@@ -34,7 +34,7 @@ export function PageCanvas({ title, back, backTo, actions, children }: Props) {
   }, []);
 
   return (
-    <section className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-canvas lg:mb-3 lg:mr-3 lg:rounded-2xl lg:shadow-raise">
+    <section className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-canvas lg:mb-6 lg:me-6 lg:mt-4 lg:rounded-2xl lg:shadow-raise">
       <header className="flex items-center justify-between gap-3 px-3 pb-3 pt-4 lg:px-7 lg:pt-8">
         <div className="flex min-w-0 items-center gap-0.5">
           {back ? <HistoryBack fallback={backTo ?? paths.home} /> : null}
