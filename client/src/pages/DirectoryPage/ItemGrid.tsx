@@ -20,7 +20,7 @@ import {
 import { paths } from "../../utils/paths.ts";
 import { ItemMenu } from "./ItemMenu.tsx";
 import { LoadMoreSentinel, VirtualRows } from "./ItemVirtualList.tsx";
-import type { FolderLayout } from "./Toolbar.tsx";
+import type { FolderLayout } from "../../hooks/use-folder-layout.ts";
 
 type DriveEntry =
   { kind: "folder"; folder: PublicFolder } | { kind: "file"; file: PublicFile };

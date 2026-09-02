@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { useFolder, flattenFolderPages } from "../../hooks/use-folder.ts";
 import { useDriveWorkspace } from "../../hooks/use-drive-workspace.ts";
@@ -11,22 +10,20 @@ import type {
 import { folderOrHome, paths } from "../../utils/paths.ts";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
 import type { DriveActions } from "../../hooks/drive-types.ts";
+import {
+  useFolderLayout,
+  type FolderLayout,
+} from "../../hooks/use-folder-layout.ts";
 import { DriveDialogs } from "./DriveDialogs.tsx";
 import { ItemGrid } from "./ItemGrid.tsx";
-import { Toolbar, type FolderLayout } from "./Toolbar.tsx";
-
-const layoutKey = "storage-layout";
-
-function readLayout(): FolderLayout {
-  return localStorage.getItem(layoutKey) === "list" ? "list" : "grid";
-}
+import { Toolbar } from "./Toolbar.tsx";
 
 export function DirectoryPage() {
   const { user } = useAuth();
   const { folderId } = useParams();
   const folder = useFolder(folderId);
   const workspace = useDriveWorkspace();
-  const [layout, setLayout] = useState(readLayout);
+  const { layout, setLayout } = useFolderLayout();
   const listing = folder.listing;
   const { head, folders, files } = flattenFolderPages(listing.data);
   const title = head?.folder.isRoot ? "Home" : (head?.folder.name ?? "Home");
@@ -45,10 +42,7 @@ export function DirectoryPage() {
           <Toolbar
             busy={busy}
             layout={layout}
-            onLayoutChange={(next) => {
-              localStorage.setItem(layoutKey, next);
-              setLayout(next);
-            }}
+            onLayoutChange={setLayout}
             onCreate={(name) => folder.create.mutate(name)}
             onUpload={(list) => folder.upload.mutate(list)}
           />

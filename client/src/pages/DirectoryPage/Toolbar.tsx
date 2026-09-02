@@ -1,8 +1,9 @@
 import { LayoutGrid, List, Plus, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { IconButton } from "../../components/ui/icon-button.tsx";
+import type { FolderLayout } from "../../hooks/use-folder-layout.ts";
 
-export type FolderLayout = "grid" | "list";
+export type { FolderLayout };
 
 type Props = {
   busy: boolean;
@@ -64,6 +65,20 @@ export function Toolbar({
           event.target.value = "";
         }}
       />
+      <LayoutToggle layout={layout} onLayoutChange={onLayoutChange} />
+    </div>
+  );
+}
+
+export function LayoutToggle({
+  layout,
+  onLayoutChange,
+}: {
+  layout: FolderLayout;
+  onLayoutChange: (layout: FolderLayout) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
       <IconButton
         label="Grid view"
         pressed={layout === "grid"}

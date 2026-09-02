@@ -12,6 +12,8 @@ import {
 } from "../../hooks/use-library.ts";
 import { DriveDialogs } from "../DirectoryPage/DriveDialogs.tsx";
 import { ItemGrid } from "../DirectoryPage/ItemGrid.tsx";
+import { LayoutToggle } from "../DirectoryPage/Toolbar.tsx";
+import { useFolderLayout } from "../../hooks/use-folder-layout.ts";
 import { paths } from "../../utils/paths.ts";
 import type { PublicFile, PublicFolder } from "../../apis/types.ts";
 
@@ -100,11 +102,16 @@ function LibraryCanvas({
   fetchNextPage: () => unknown;
 }) {
   const workspace = useDriveWorkspace();
+  const { layout, setLayout } = useFolderLayout();
   const isEmpty = !loading && folders.length === 0 && files.length === 0;
 
   return (
     <>
-      <PageCanvas title={title} backTo={paths.home}>
+      <PageCanvas
+        title={title}
+        backTo={paths.home}
+        actions={<LayoutToggle layout={layout} onLayoutChange={setLayout} />}
+      >
         {loading ? (
           <p className="py-16 text-center text-sm text-muted">Loading…</p>
         ) : isEmpty ? (
@@ -115,6 +122,7 @@ function LibraryCanvas({
           </div>
         ) : (
           <ItemGrid
+            layout={layout}
             folders={folders}
             files={files}
             mode={mode}

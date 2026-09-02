@@ -57,6 +57,7 @@ function jsonFail(status: number, code: string, message: string) {
 afterEach(() => {
   vi.unstubAllGlobals();
   localStorage.removeItem("storage-layout");
+  localStorage.removeItem("storage-roadmap");
 });
 
 function requestUrl(input: RequestInfo | URL) {
@@ -228,6 +229,9 @@ describe("app routes", () => {
     expect(screen.getByText("Name and email")).toBeInTheDocument();
     expect(screen.getByText("Theme for this device")).toBeInTheDocument();
     expect(screen.getByText("Reset password")).toBeInTheDocument();
+    expect(
+      screen.getByText("Deploy first, then S3 and the rest"),
+    ).toBeInTheDocument();
     expect(screen.queryByLabelText("Current password")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
     expect(
@@ -276,6 +280,12 @@ describe("app routes", () => {
     await waitFor(() => {
       expect(screen.getByText("Trash is empty")).toBeInTheDocument();
     });
+    expect(
+      screen.getByRole("button", { name: "Grid view" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "List view" }),
+    ).toBeInTheDocument();
   });
 
   it("lists five appearance themes on their own page", async () => {
@@ -326,6 +336,25 @@ describe("app routes", () => {
     ).toBeInTheDocument();
   });
 
+  it("lists leftover roadmap work", async () => {
+    mockSignedIn();
+    renderPath(paths.roadmap);
+    expect(
+      await screen.findByRole("heading", { name: "Roadmap" }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Deploy this slice first" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Persistent file storage")).toBeInTheDocument();
+    expect(screen.getByText("Host the API and the client")).toBeInTheDocument();
+    expect(
+      screen.getByText("S3-compatible object storage"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Search and filter users")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Admin" })).toBeInTheDocument();
+    expect(screen.getByText("Already in place")).toBeInTheDocument();
+  });
+
   it("switches Home between grid and list view", async () => {
     mockSignedIn();
     const user = userEvent.setup();
@@ -337,5 +366,15 @@ describe("app routes", () => {
     await user.click(list);
     expect(list).toHaveAttribute("aria-pressed", "true");
     expect(grid).toHaveAttribute("aria-pressed", "false");
+    const trashLinks = screen.getAllByRole("link", { name: "Trash" });
+    expect(trashLinks.length).toBeGreaterThan(0);
+    await user.click(trashLinks[0]!);
+    expect(
+      await screen.findByRole("heading", { name: "Trash" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "List view" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 });

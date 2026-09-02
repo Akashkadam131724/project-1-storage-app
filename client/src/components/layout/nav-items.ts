@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Clock,
   Home,
+  ListChecks,
   Palette,
   Settings,
   Shield,
@@ -33,6 +34,7 @@ export const mobileNav: NavItem[] = [
 export const toolNav: NavItem[] = [
   { to: paths.settings, label: "Settings", icon: Settings },
   { to: paths.appearance, label: "Appearance", icon: Palette },
+  { to: paths.roadmap, label: "Roadmap", icon: ListChecks },
   { to: paths.trash, label: "Trash", icon: Trash2 },
 ];
 

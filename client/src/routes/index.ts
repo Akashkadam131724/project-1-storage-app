@@ -15,6 +15,7 @@ import { NotFoundPage } from "../pages/NotFoundPage/index.tsx";
 import { AppearancePage } from "../pages/AppearancePage/index.tsx";
 import { PasswordPage } from "../pages/PasswordPage/index.tsx";
 import { ProfilePage } from "../pages/ProfilePage/index.tsx";
+import { RoadmapPage } from "../pages/RoadmapPage/index.tsx";
 import { SettingsPage } from "../pages/SettingsPage/index.tsx";
 import { paths } from "../utils/paths.ts";
 
@@ -33,6 +34,7 @@ export const routes = [
       { path: "appearance", Component: AppearancePage },
       { path: "settings", Component: SettingsPage },
       { path: "password", Component: PasswordPage },
+      { path: "roadmap", Component: RoadmapPage },
       { path: "admin", Component: AdminRoute },
     ],
   },

@@ -1,8 +1,9 @@
-import { KeyRound, Palette, User } from "lucide-react";
+import { KeyRound, ListChecks, Palette, Shield, User } from "lucide-react";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
 import { AccountTile } from "../../components/ui/account-row.tsx";
 import { SignOutButton } from "../../components/sign-out-button.tsx";
 import { useAuth } from "../../contexts/auth-context.ts";
+import { isAdmin } from "../../utils/roles.ts";
 import { paths } from "../../utils/paths.ts";
 
 export function SettingsPage() {
@@ -34,6 +35,20 @@ export function SettingsPage() {
           title="Appearance"
           hint="Theme for this device"
         />
+        <AccountTile
+          to={paths.roadmap}
+          icon={ListChecks}
+          title="Roadmap"
+          hint="Deploy first, then S3 and the rest"
+        />
+        {isAdmin(user) ? (
+          <AccountTile
+            to={paths.admin}
+            icon={Shield}
+            title="Admin"
+            hint="Users, roles, and accounts"
+          />
+        ) : null}
       </div>
     </PageCanvas>
   );

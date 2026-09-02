@@ -12,6 +12,7 @@ export const paths = {
   appearance: "/appearance",
   settings: "/settings",
   password: "/password",
+  roadmap: "/roadmap",
   admin: "/admin",
 } as const;
 
