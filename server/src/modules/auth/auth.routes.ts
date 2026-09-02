@@ -6,6 +6,7 @@ import {
   githubLogin,
   githubStart,
   googleLogin,
+  guestLogin,
   login,
   logout,
   logoutAll,
@@ -29,6 +30,7 @@ export const authRouter = Router();
 authRouter.post("/otp", validateBody(requestOtpSchema), requestOtp);
 authRouter.post("/register", validateBody(registerSchema), register);
 authRouter.post("/login", validateBody(loginSchema), login);
+authRouter.post("/guest", guestLogin);
 authRouter.post("/google", validateBody(googleLoginSchema), googleLogin);
 authRouter.get("/github/start", githubStart);
 authRouter.get("/github/callback", githubCallback);

@@ -149,6 +149,73 @@ describe("auth", () => {
     expect((await agent.get("/api/users/me")).status).toBe(401);
     expect((await other.get("/api/users/me")).status).toBe(401);
   });
+
+  it("starts a guest session without an email", async () => {
+    const agent = request.agent(app);
+    const guest = await agent.post("/api/auth/guest").expect(200);
+
+    expect(guest.body.data.isGuest).toBe(true);
+    expect(guest.body.data.name).toBe("Guest");
+    expect(guest.body.data.hasPassword).toBe(false);
+
+    const me = await agent.get("/api/users/me").expect(200);
+    expect(me.body.data.id).toBe(guest.body.data.id);
+    expect(me.body.data.rootDirId).toBe(guest.body.data.rootDirId);
+  });
+
+  it("keeps guest files when converting to a real account", async () => {
+    const agent = request.agent(app);
+    const guest = await agent.post("/api/auth/guest").expect(200);
+    const rootDirId = guest.body.data.rootDirId as string;
+
+    await agent
+      .post("/api/files")
+      .attach("file", Buffer.from("keep me"), "notes.txt")
+      .expect(201);
+
+    const email = "kept@example.com";
+    const otp = await agent.post("/api/auth/otp").send({ email }).expect(200);
+    await agent
+      .post("/api/auth/register")
+      .send({
+        name: "Ada Lovelace",
+        email,
+        password: "password1",
+        code: otp.body.data.code,
+      })
+      .expect(201);
+
+    const me = await agent.get("/api/users/me").expect(200);
+    expect(me.body.data.isGuest).toBe(false);
+    expect(me.body.data.email).toBe(email);
+    expect(me.body.data.hasPassword).toBe(true);
+    expect(me.body.data.rootDirId).toBe(rootDirId);
+
+    const listing = await agent.get("/api/directories").expect(200);
+    expect(listing.body.data.files.items[0].name).toBe("notes.txt");
+
+    await agent.post("/api/auth/logout").expect(200);
+    const login = await agent.post("/api/auth/login").send({
+      email,
+      password: "password1",
+    });
+    expect(login.status).toBe(200);
+    expect(login.body.data.rootDirId).toBe(rootDirId);
+  });
+
+  it("deletes a guest drive on logout", async () => {
+    const agent = request.agent(app);
+    await agent.post("/api/auth/guest").expect(200);
+    await agent.post("/api/directories").send({ name: "temp" }).expect(201);
+
+    await agent.post("/api/auth/logout").expect(200);
+    expect((await agent.get("/api/users/me")).status).toBe(401);
+
+    await agent.post("/api/auth/guest").expect(200);
+    const listing = await agent.get("/api/directories").expect(200);
+    expect(listing.body.data.folders.items).toHaveLength(0);
+    expect(listing.body.data.files.items).toHaveLength(0);
+  });
 });
 
 describe("GET /api/users/me", () => {

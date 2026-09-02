@@ -1,15 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { Cloud } from "lucide-react";
 import { getFolder } from "../../apis/directories.ts";
-import { formatBytes, MAX_STORAGE_BYTES } from "../../utils/format.ts";
+import { useAuth } from "../../contexts/auth-context.ts";
+import {
+  formatBytes,
+  MAX_GUEST_STORAGE_BYTES,
+  MAX_STORAGE_BYTES,
+} from "../../utils/format.ts";
+import { Link } from "react-router";
+import { paths } from "../../utils/paths.ts";
 
 export function StorageMeter() {
+  const { user } = useAuth();
   const usage = useQuery({
     queryKey: ["folder", "root"],
     queryFn: () => getFolder(),
   });
   const used = usage.data?.folder.size ?? 0;
-  const percent = Math.min(100, (used / MAX_STORAGE_BYTES) * 100);
+  const cap = user?.isGuest ? MAX_GUEST_STORAGE_BYTES : MAX_STORAGE_BYTES;
+  const percent = Math.min(100, (used / cap) * 100);
 
   return (
     <div className="border-t border-line px-4 py-4">
@@ -24,14 +33,23 @@ export function StorageMeter() {
         />
       </div>
       <p className="mb-3 text-xs text-muted">
-        {formatBytes(used)} of {formatBytes(MAX_STORAGE_BYTES)} used
+        {formatBytes(used)} of {formatBytes(cap)} used
       </p>
-      <button
-        type="button"
-        className="w-full rounded-xl border border-line bg-canvas px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-chrome"
-      >
-        Get more storage
-      </button>
+      {user?.isGuest ? (
+        <Link
+          to={paths.register}
+          className="block w-full rounded-xl border border-line bg-canvas px-3 py-2 text-center text-xs font-medium text-primary transition-colors hover:bg-chrome"
+        >
+          Create an account
+        </Link>
+      ) : (
+        <button
+          type="button"
+          className="w-full rounded-xl border border-line bg-canvas px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-chrome"
+        >
+          Get more storage
+        </button>
+      )}
     </div>
   );
 }

@@ -17,6 +17,7 @@ export type PublicUser = {
   picture: string;
   authProvider: "password" | "google" | "github";
   hasPassword: boolean;
+  isGuest: boolean;
 };
 
 export type AdminUser = PublicUser & { isDeleted: boolean };

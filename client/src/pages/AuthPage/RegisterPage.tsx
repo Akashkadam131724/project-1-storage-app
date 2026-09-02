@@ -22,7 +22,7 @@ export function RegisterPage() {
 }
 
 function RegisterForm() {
-  const { setSession } = useAuth();
+  const { user, setSession, refresh } = useAuth();
   const navigate = useNavigate();
   const [draft, setDraft] = useState({
     name: "",
@@ -32,6 +32,7 @@ function RegisterForm() {
   });
   const [awaitingCode, setAwaitingCode] = useState(false);
   const [busy, setBusy] = useState(false);
+  const converting = Boolean(user?.isGuest);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -39,8 +40,12 @@ function RegisterForm() {
     try {
       await submitRegister(draft, awaitingCode, setAwaitingCode);
       if (!awaitingCode) return;
-      const profile = await signIn(draft.email, draft.password);
-      setSession(profile);
+      if (converting) {
+        await refresh();
+      } else {
+        const profile = await signIn(draft.email, draft.password);
+        setSession(profile);
+      }
       void navigate(paths.home);
     } catch (error) {
       toast.error(
@@ -53,8 +58,12 @@ function RegisterForm() {
 
   return (
     <AuthShell
-      title="Create your account"
-      subtitle="Get a verification code, then start storing files."
+      title={converting ? "Keep your files" : "Create your account"}
+      subtitle={
+        converting
+          ? "Create an account to keep this drive after you leave."
+          : "Get a verification code, then start storing files."
+      }
     >
       <form
         className={authFormClass}
@@ -66,7 +75,11 @@ function RegisterForm() {
           onChange={setDraft}
         />
         <button type="submit" className={authSubmitClass} disabled={busy}>
-          {awaitingCode ? "Create account" : "Send code"}
+          {awaitingCode
+            ? converting
+              ? "Save account"
+              : "Create account"
+            : "Send code"}
         </button>
       </form>
       <p className="mt-6 text-center text-sm text-muted">

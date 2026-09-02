@@ -51,6 +51,13 @@ export async function changePassword(
 
 export async function setPassword(userId: string, password: string) {
   const user = await loadUser(userId);
+  if (user.isGuest) {
+    throw new ApiError({
+      code: ErrorCode.FORBIDDEN,
+      message: "Create an account to set a password",
+      status: HttpStatus.FORBIDDEN,
+    });
+  }
   if (user.passwordHash) {
     throw new ApiError({
       code: ErrorCode.PASSWORD_ALREADY_SET,

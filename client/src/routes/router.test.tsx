@@ -18,6 +18,7 @@ const demoUser = {
   picture: "",
   authProvider: "password",
   hasPassword: true,
+  isGuest: false,
 };
 
 const emptyListing = {
@@ -64,13 +65,21 @@ function requestUrl(input: RequestInfo | URL) {
   return input.url;
 }
 
-function mockSignedIn() {
+const guestUser = {
+  ...demoUser,
+  name: "Guest",
+  email: "guest.x@guest.storage.app",
+  hasPassword: false,
+  isGuest: true,
+};
+
+function mockSignedIn(user = demoUser) {
   vi.stubGlobal(
     "fetch",
     vi.fn((input: RequestInfo | URL) => {
       const url = requestUrl(input);
       if (url.includes("/api/users/me")) {
-        return Promise.resolve(jsonOk(demoUser));
+        return Promise.resolve(jsonOk(user));
       }
       if (url.includes("/api/directories")) {
         return Promise.resolve(jsonOk(emptyListing));
@@ -157,6 +166,40 @@ describe("app routes", () => {
     expect(
       screen.getByRole("button", { name: "Continue with GitHub" }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Continue as guest" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a keep-files banner for guest sessions", async () => {
+    mockSignedIn(guestUser);
+    renderPath(paths.home);
+    expect(
+      await screen.findByRole("heading", { name: "Home" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/You are browsing as a guest/i),
+    ).toBeInTheDocument();
+  });
+
+  it("lets a guest open the register page", async () => {
+    mockSignedIn(guestUser);
+    renderPath(paths.register);
+    expect(
+      await screen.findByRole("heading", { name: "Keep your files" }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides password and danger settings for guests", async () => {
+    mockSignedIn(guestUser);
+    renderPath(paths.settings);
+    expect(
+      await screen.findByRole("heading", { name: "Settings" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Keep your files")).toBeInTheDocument();
+    expect(screen.queryByText("Password")).not.toBeInTheDocument();
+    expect(screen.queryByText("Set a password")).not.toBeInTheDocument();
+    expect(screen.queryByText("Danger zone")).not.toBeInTheDocument();
   });
 
   it("renders the password reset page", async () => {

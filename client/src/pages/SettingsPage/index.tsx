@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { useNavigate } from "react-router";
+import { Link } from "react-router";
 import { toast } from "sonner";
 import {
   changePassword,
@@ -22,10 +22,15 @@ export function SettingsPage() {
   return (
     <PageCanvas title="Settings" backTo={paths.home}>
       <div className="mx-auto max-w-xl space-y-6">
-        <ProfileCard name={user.name} email={user.email} />
-        {user.hasPassword ? <ChangePasswordCard /> : <SetPasswordCard />}
-        <SessionsCard />
-        <DangerCard />
+        {user.isGuest ? <KeepFilesCard /> : null}
+        <ProfileCard name={user.name} email={user.isGuest ? "" : user.email} />
+        {user.isGuest ? null : user.hasPassword ? (
+          <ChangePasswordCard />
+        ) : (
+          <SetPasswordCard />
+        )}
+        {user.isGuest ? null : <SessionsCard />}
+        {user.isGuest ? null : <DangerCard />}
       </div>
     </PageCanvas>
   );
@@ -66,7 +71,7 @@ function ProfileCard({ name, email }: { name: string; email: string }) {
             onChange={(event) => setValue(event.target.value)}
           />
         </label>
-        <p className="text-sm text-muted">{email}</p>
+        {email ? <p className="text-sm text-muted">{email}</p> : null}
         <button
           type="submit"
           className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-on-primary"
@@ -75,6 +80,22 @@ function ProfileCard({ name, email }: { name: string; email: string }) {
           Save name
         </button>
       </form>
+    </SettingsCard>
+  );
+}
+
+function KeepFilesCard() {
+  return (
+    <SettingsCard title="Keep your files">
+      <p className="mb-3 text-sm text-muted">
+        This guest drive is temporary. Create an account to keep your files.
+      </p>
+      <Link
+        to={paths.register}
+        className="inline-flex rounded-full bg-primary px-4 py-2 text-sm font-medium text-on-primary"
+      >
+        Create an account
+      </Link>
     </SettingsCard>
   );
 }
@@ -174,7 +195,6 @@ function SetPasswordCard() {
 
 function SessionsCard() {
   const { setSession } = useAuth();
-  const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
 
   async function handleLogoutAll() {
@@ -182,7 +202,6 @@ function SessionsCard() {
     try {
       await signOutAll();
       setSession(null);
-      void navigate(paths.login);
     } catch (error) {
       toastApiError(error, "Could not sign out everywhere");
     } finally {
@@ -209,7 +228,6 @@ function SessionsCard() {
 
 function DangerCard() {
   const { setSession } = useAuth();
-  const navigate = useNavigate();
   const [confirm, setConfirm] = useState<"disable" | "delete" | null>(null);
 
   async function runDanger() {
@@ -218,7 +236,6 @@ function DangerCard() {
       if (confirm === "disable") await disableMe();
       else await deleteMe();
       setSession(null);
-      void navigate(paths.login);
     } catch (error) {
       toastApiError(error, "Could not update account");
     } finally {

@@ -13,6 +13,7 @@ export function formatBytes(bytes: number) {
 }
 
 export const MAX_STORAGE_BYTES = 500 * 1024 * 1024;
+export const MAX_GUEST_STORAGE_BYTES = 25 * 1024 * 1024;
 
 export function formatDate(value: string) {
   if (!value) return "—";

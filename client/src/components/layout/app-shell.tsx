@@ -6,6 +6,7 @@ import { AppDrawer } from "./app-drawer.tsx";
 import { AppHeader } from "./app-header.tsx";
 import { AppSidebar } from "./app-sidebar.tsx";
 import { BottomNav } from "./bottom-nav.tsx";
+import { GuestBanner } from "./guest-banner.tsx";
 
 export function AppShell() {
   const { pathname } = useLocation();
@@ -27,6 +28,7 @@ export function AppShell() {
       <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
         <OAuthNotice />
         <AppHeader onMenuClick={() => setMenuPath(pathname)} />
+        <GuestBanner />
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <div className="hidden lg:block">
             <AppSidebar />

@@ -6,6 +6,8 @@ import {
   HttpStatus,
 } from "../../shared/http/index.js";
 import {
+  continueAsGuest,
+  convertGuestAccount,
   registerAccount,
   requestPasswordReset,
   requestSignupCode,
@@ -31,11 +33,13 @@ import {
   newOauthState,
   readGithubState,
 } from "./oauth.service.js";
+import { deleteAccount } from "../user/user.service.js";
 import {
   attachSessionCookie,
   clearSessionCookie,
   destroyAllUserSessions,
   destroyUserSession,
+  getUserFromSession,
   readSessionId,
 } from "./session.service.js";
 
@@ -50,10 +54,37 @@ export async function requestOtp(req: Request, res: Response) {
 
 export async function register(req: Request, res: Response) {
   const body = req.body as RegisterBody;
+  const sessionId = readSessionId(req.signedCookies);
+  const current = sessionId ? await getUserFromSession(sessionId) : null;
+
+  if (current?.isGuest) {
+    const profile = await convertGuestAccount(current.id, body);
+    return ApiResponse.success(res, {
+      message: "Account created",
+      status: HttpStatus.CREATED,
+      data: profile,
+    });
+  }
+
   await registerAccount(body);
   return ApiResponse.success(res, {
     message: "Account created",
     status: HttpStatus.CREATED,
+  });
+}
+
+export async function guestLogin(req: Request, res: Response) {
+  const sessionId = readSessionId(req.signedCookies);
+  const current = sessionId ? await getUserFromSession(sessionId) : null;
+  if (current) {
+    return ApiResponse.success(res, { message: "Signed in", data: current });
+  }
+
+  const guest = await continueAsGuest();
+  attachSessionCookie(res, guest.sessionId);
+  return ApiResponse.success(res, {
+    message: "Signed in as guest",
+    data: guest.profile,
   });
 }
 
@@ -95,7 +126,12 @@ export async function githubLogin(req: Request, res: Response) {
 
 export async function logout(req: Request, res: Response) {
   const sessionId = readSessionId(req.signedCookies);
-  await destroyUserSession(sessionId);
+  const current = sessionId ? await getUserFromSession(sessionId) : null;
+  if (current?.isGuest) {
+    await deleteAccount(current.id);
+  } else {
+    await destroyUserSession(sessionId);
+  }
   clearSessionCookie(res);
   return ApiResponse.success(res, { message: "Signed out" });
 }

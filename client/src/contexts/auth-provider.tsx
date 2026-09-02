@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "../apis/http.ts";
 import { getMe } from "../apis/users.ts";
 import type { PublicUser } from "../apis/types.ts";
+import { paths } from "../utils/paths.ts";
 import { AuthContext, sessionKey } from "./auth-context.ts";
 
 async function loadSession() {
@@ -26,6 +27,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setSession = useCallback(
     (user: PublicUser | null) => {
+      const current = queryClient.getQueryData<PublicUser | null>(sessionKey);
+      if (!user) {
+        queryClient.clear();
+        window.location.assign(paths.login);
+        return;
+      }
+      if (current?.id !== user.id) {
+        queryClient.removeQueries({
+          predicate: (query) => query.queryKey[0] !== sessionKey[0],
+        });
+      }
       queryClient.setQueryData(sessionKey, user);
     },
     [queryClient],

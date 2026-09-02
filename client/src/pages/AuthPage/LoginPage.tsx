@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { GoogleLogin } from "@react-oauth/google";
 import { toast } from "sonner";
 import {
+  continueAsGuest,
   signIn,
   signInWithGoogle,
   startGithubSignIn,
@@ -97,6 +98,7 @@ function LoginForm() {
         <button type="submit" className={authSubmitClass} disabled={busy}>
           {busy ? "Signing in…" : "Sign in"}
         </button>
+        <ContinueAsGuest />
         <GithubSignIn />
         {env.VITE_GOOGLE_CLIENT_ID ? <GoogleSignIn /> : null}
       </form>
@@ -106,6 +108,43 @@ function LoginForm() {
         </Link>
       </p>
     </AuthShell>
+  );
+}
+
+function ContinueAsGuest() {
+  const { user, setSession } = useAuth();
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+
+  async function handleClick() {
+    if (user?.isGuest) {
+      void navigate(paths.home);
+      return;
+    }
+    setBusy(true);
+    try {
+      const profile = await continueAsGuest();
+      setSession(profile);
+      void navigate(paths.home);
+    } catch (error) {
+      toastApiError(error, "Could not start a guest session");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      className="w-full rounded-lg border border-line bg-canvas py-2.5 text-sm font-medium text-ink hover:bg-chrome disabled:opacity-60"
+      disabled={busy}
+      onClick={() => void handleClick()}
+    >
+      {busy
+        ? "Opening…"
+        : user?.isGuest
+          ? "Back to files"
+          : "Continue as guest"}
+    </button>
   );
 }
 

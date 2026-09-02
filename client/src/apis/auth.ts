@@ -27,6 +27,10 @@ export function signIn(email: string, password: string) {
   });
 }
 
+export function continueAsGuest() {
+  return apiRequest<PublicUser>("/api/auth/guest", { method: "POST" });
+}
+
 export function signInWithGoogle(idToken: string) {
   return apiRequest<PublicUser>("/api/auth/google", {
     method: "POST",

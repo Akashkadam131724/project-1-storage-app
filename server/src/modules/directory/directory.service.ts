@@ -1,6 +1,9 @@
 import { extname } from "node:path";
 import { Types, type HydratedDocument } from "mongoose";
-import { MAX_STORAGE_BYTES } from "../../shared/constants/index.js";
+import {
+  GUEST_STORAGE_BYTES,
+  MAX_STORAGE_BYTES,
+} from "../../shared/constants/index.js";
 import { uniqueCopyName } from "../../shared/lib/copy-name.js";
 import { ApiError, ErrorCode, HttpStatus } from "../../shared/http/index.js";
 import {
@@ -10,6 +13,7 @@ import {
 } from "../../shared/pagination/index.js";
 import { buildBlobKey, copyBlob, deleteBlob } from "../file/blob.store.js";
 import { FileModel, toPublicFile } from "../file/file.model.js";
+import { UserModel } from "../user/user.model.js";
 import {
   DirectoryModel,
   toPublicFolder,
@@ -222,9 +226,13 @@ export async function assertFolderNameFree(
 }
 
 export async function assertStorageFits(userId: string, extraBytes: number) {
-  const root = await DirectoryModel.findOne({ userId, parentDirId: null });
+  const [root, user] = await Promise.all([
+    DirectoryModel.findOne({ userId, parentDirId: null }),
+    UserModel.findById(userId).select("isGuest"),
+  ]);
   const used = root?.size ?? 0;
-  if (used + extraBytes > MAX_STORAGE_BYTES) {
+  const cap = user?.isGuest ? GUEST_STORAGE_BYTES : MAX_STORAGE_BYTES;
+  if (used + extraBytes > cap) {
     throw new ApiError({
       code: ErrorCode.STORAGE_FULL,
       message: "Not enough storage remaining",

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { Types, type HydratedDocument } from "mongoose";
 import { env } from "../../config/env.js";
@@ -34,6 +35,7 @@ type NewAccountInput = {
   passwordHash?: string;
   picture?: string;
   authProvider: AuthProvider;
+  isGuest?: boolean;
 };
 
 export async function requestSignupCode(email: string) {
@@ -56,6 +58,50 @@ export async function registerAccount(input: RegisterBody) {
     passwordHash: await hashPassword(input.password),
     authProvider: DEFAULT_AUTH_PROVIDER,
   });
+}
+
+export async function continueAsGuest(): Promise<SignInResult> {
+  const user = await createUserWithHome({
+    name: "Guest",
+    email: guestEmail(),
+    authProvider: DEFAULT_AUTH_PROVIDER,
+    isGuest: true,
+  });
+  return issueSession(user);
+}
+
+export async function convertGuestAccount(userId: string, input: RegisterBody) {
+  const user = await UserModel.findById(userId).select("+passwordHash");
+  if (!user || user.isDeleted || !user.isGuest) {
+    throw new ApiError({
+      code: ErrorCode.FORBIDDEN,
+      message: "Only a guest session can be converted",
+      status: HttpStatus.FORBIDDEN,
+    });
+  }
+
+  await assertEmailAvailable(input.email);
+  await consumeSignupCode(input.email, input.code);
+
+  user.name = input.name;
+  user.email = input.email;
+  user.passwordHash = await hashPassword(input.password);
+  user.authProvider = DEFAULT_AUTH_PROVIDER;
+  user.isGuest = false;
+  try {
+    await user.save();
+  } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      throw new ApiError({
+        code: ErrorCode.EMAIL_TAKEN,
+        message: "An account with this email already exists",
+        status: HttpStatus.CONFLICT,
+      });
+    }
+    throw error;
+  }
+
+  return toPublicUser(user);
 }
 
 export async function signIn(
@@ -207,6 +253,7 @@ async function createUserWithHome(input: NewAccountInput) {
       picture: input.picture ?? "",
       authProvider: input.authProvider,
       rootDirId,
+      ...(input.isGuest ? { isGuest: true } : {}),
     });
   } catch (error) {
     await DirectoryModel.deleteOne({ _id: rootDirId });
@@ -228,4 +275,8 @@ export async function hashPassword(plain: string) {
 
 export async function verifyPassword(plain: string, passwordHash: string) {
   return bcrypt.compare(plain, passwordHash);
+}
+
+function guestEmail() {
+  return `guest.${randomUUID()}@guest.storage.app`;
 }

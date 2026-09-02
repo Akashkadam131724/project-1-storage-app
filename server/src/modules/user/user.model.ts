@@ -38,6 +38,7 @@ const userSchema = new Schema(
     },
     picture: { type: String, default: "" },
     role: { type: String, enum: USER_ROLES, default: DEFAULT_USER_ROLE },
+    isGuest: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true },
@@ -57,6 +58,7 @@ export type PublicUser = {
   picture: string;
   authProvider: AuthProvider;
   hasPassword: boolean;
+  isGuest: boolean;
 };
 
 export function toPublicUser(user: UserDoc): PublicUser {
@@ -69,6 +71,7 @@ export function toPublicUser(user: UserDoc): PublicUser {
     picture: user.picture,
     authProvider: user.authProvider,
     hasPassword: Boolean(user.passwordHash),
+    isGuest: Boolean(user.isGuest),
   };
 }
 
