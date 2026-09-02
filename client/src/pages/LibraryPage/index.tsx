@@ -12,14 +12,17 @@ import {
 } from "../../hooks/use-library.ts";
 import { DriveDialogs } from "../DirectoryPage/DriveDialogs.tsx";
 import { ItemGrid } from "../DirectoryPage/ItemGrid.tsx";
-import { LayoutToggle } from "../DirectoryPage/Toolbar.tsx";
+import { ListingControls } from "../DirectoryPage/Toolbar.tsx";
 import { useFolderLayout } from "../../hooks/use-folder-layout.ts";
+import { useListingSort } from "../../hooks/use-listing-sort.ts";
 import { paths } from "../../utils/paths.ts";
-import type { PublicFile, PublicFolder } from "../../apis/types.ts";
+import type { DriveItem, PublicFile, PublicFolder } from "../../apis/types.ts";
+import type { ListingSort } from "../../apis/listing.ts";
 
 export function TrashPage() {
-  const query = useTrash();
-  const { folders, files } = flattenLibraryPages(query.data);
+  const { sort, setSort } = useListingSort();
+  const query = useTrash(sort);
+  const { folders, files, items } = flattenLibraryPages(query.data);
   return (
     <LibraryCanvas
       title="Trash"
@@ -30,6 +33,9 @@ export function TrashPage() {
       loading={query.isPending}
       folders={folders}
       files={files}
+      items={items}
+      sort={sort}
+      onSortChange={setSort}
       hasNextPage={query.hasNextPage}
       isFetchingNextPage={query.isFetchingNextPage}
       fetchNextPage={query.fetchNextPage}
@@ -38,8 +44,9 @@ export function TrashPage() {
 }
 
 export function StarredPage() {
-  const query = useStarred();
-  const { folders, files } = flattenLibraryPages(query.data);
+  const { sort, setSort } = useListingSort();
+  const query = useStarred(sort);
+  const { folders, files, items } = flattenLibraryPages(query.data);
   return (
     <LibraryCanvas
       title="Starred"
@@ -50,6 +57,9 @@ export function StarredPage() {
       loading={query.isPending}
       folders={folders}
       files={files}
+      items={items}
+      sort={sort}
+      onSortChange={setSort}
       hasNextPage={query.hasNextPage}
       isFetchingNextPage={query.isFetchingNextPage}
       fetchNextPage={query.fetchNextPage}
@@ -58,7 +68,8 @@ export function StarredPage() {
 }
 
 export function RecentPage() {
-  const query = useRecent();
+  const { sort, setSort } = useListingSort();
+  const query = useRecent(sort);
   return (
     <LibraryCanvas
       title="Recent"
@@ -69,6 +80,9 @@ export function RecentPage() {
       loading={query.isPending}
       folders={[]}
       files={flattenRecentPages(query.data)}
+      sort={sort}
+      onSortChange={setSort}
+      showFolders={false}
       hasNextPage={query.hasNextPage}
       isFetchingNextPage={query.isFetchingNextPage}
       fetchNextPage={query.fetchNextPage}
@@ -85,6 +99,10 @@ function LibraryCanvas({
   loading,
   folders,
   files,
+  items,
+  sort,
+  onSortChange,
+  showFolders = true,
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
@@ -97,6 +115,10 @@ function LibraryCanvas({
   loading: boolean;
   folders: PublicFolder[];
   files: PublicFile[];
+  items?: DriveItem[];
+  sort: ListingSort;
+  onSortChange: (sort: ListingSort) => void;
+  showFolders?: boolean;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => unknown;
@@ -110,7 +132,15 @@ function LibraryCanvas({
       <PageCanvas
         title={title}
         backTo={paths.home}
-        actions={<LayoutToggle layout={layout} onLayoutChange={setLayout} />}
+        actions={
+          <ListingControls
+            layout={layout}
+            onLayoutChange={setLayout}
+            sort={sort}
+            onSortChange={onSortChange}
+            showFolders={showFolders}
+          />
+        }
       >
         {loading ? (
           <p className="py-16 text-center text-sm text-muted">Loading…</p>
@@ -125,6 +155,9 @@ function LibraryCanvas({
             layout={layout}
             folders={folders}
             files={files}
+            items={items}
+            sort={sort}
+            onSortChange={onSortChange}
             mode={mode}
             actions={workspace.actions}
             hasNextPage={hasNextPage}

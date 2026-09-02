@@ -57,6 +57,7 @@ function jsonFail(status: number, code: string, message: string) {
 afterEach(() => {
   vi.unstubAllGlobals();
   localStorage.removeItem("storage-layout");
+  localStorage.removeItem("storage-sort");
   localStorage.removeItem("storage-roadmap");
 });
 
@@ -376,5 +377,41 @@ describe("app routes", () => {
       "aria-pressed",
       "true",
     );
+  });
+
+  it("sends the selected Home sort to the listing API", async () => {
+    mockSignedIn();
+    const user = userEvent.setup();
+    renderPath(paths.home);
+    await screen.findByRole("heading", { name: "Home" });
+    const fetchMock = vi.mocked(fetch);
+    expect(
+      fetchMock.mock.calls.some((call) =>
+        requestUrl(call[0]).includes("sortBy=name"),
+      ),
+    ).toBe(true);
+
+    await user.click(screen.getByRole("button", { name: "Sort" }));
+    await user.click(
+      screen.getByRole("menuitemradio", { name: "Date modified" }),
+    );
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some((call) =>
+          requestUrl(call[0]).includes("sortBy=modified&sortDir=desc"),
+        ),
+      ).toBe(true);
+    });
+
+    await user.click(
+      screen.getByRole("menuitemradio", { name: "Mixed with files" }),
+    );
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some((call) =>
+          requestUrl(call[0]).includes("folders=mixed"),
+        ),
+      ).toBe(true);
+    });
   });
 });

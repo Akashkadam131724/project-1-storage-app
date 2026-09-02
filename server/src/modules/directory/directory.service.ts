@@ -4,9 +4,14 @@ import { storageQuotaBytes } from "../../shared/storage-quota.js";
 import { uniqueCopyName } from "../../shared/lib/copy-name.js";
 import { ApiError, ErrorCode, HttpStatus } from "../../shared/http/index.js";
 import {
+  applyListingSort,
+  mergeListingDocs,
+  type ListingQuery,
+} from "../../shared/listing/index.js";
+import {
   pageOffset,
+  paginateArray,
   toPaginated,
-  type PaginationQuery,
 } from "../../shared/pagination/index.js";
 import { buildBlobKey, copyBlob, deleteBlob } from "../file/blob.store.js";
 import { FileModel, toPublicFile } from "../file/file.model.js";
@@ -25,11 +30,11 @@ const live = { trashedAt: null };
 export async function getFolderListing(
   userId: string,
   folderId: string,
-  pagination: PaginationQuery,
+  listing: ListingQuery,
 ) {
   const folder = await loadOwnedFolder(userId, folderId);
   const [children, ancestors] = await Promise.all([
-    listLiveChildren(userId, folder._id, pagination),
+    listLiveChildren(userId, folder._id, listing),
     loadAncestors(folder),
   ]);
 
@@ -405,27 +410,50 @@ async function descendantFolderIds(folderId: string) {
 async function listLiveChildren(
   userId: string,
   parentId: Types.ObjectId,
-  pagination: PaginationQuery,
+  listing: ListingQuery,
 ) {
   const filter = { userId, parentDirId: parentId, ...live };
-  const skip = pageOffset(pagination);
+
+  if (listing.folders === "mixed") {
+    const [allFolders, allFiles] = await Promise.all([
+      applyListingSort(
+        DirectoryModel.find(filter),
+        "folder",
+        listing,
+        "children",
+      ),
+      applyListingSort(FileModel.find(filter), "file", listing, "children"),
+    ]);
+    return {
+      folders: paginateArray(allFolders.map(toPublicFolder), listing),
+      files: paginateArray(allFiles.map(toPublicFile), listing),
+      entries: paginateArray(
+        mergeListingDocs(allFolders, allFiles, listing, "children").map(
+          (entry) =>
+            entry.type === "folder"
+              ? { type: "folder" as const, folder: toPublicFolder(entry.item) }
+              : { type: "file" as const, file: toPublicFile(entry.item) },
+        ),
+        listing,
+      ),
+    };
+  }
+
+  const skip = pageOffset(listing);
   const [folderDocs, folderTotal, fileDocs, fileTotal] = await Promise.all([
-    DirectoryModel.find(filter)
-      .sort({ name: 1 })
+    applyListingSort(DirectoryModel.find(filter), "folder", listing, "children")
       .skip(skip)
-      .limit(pagination.limit),
+      .limit(listing.limit),
     DirectoryModel.countDocuments(filter),
-    FileModel.find(filter).sort({ name: 1 }).skip(skip).limit(pagination.limit),
+    applyListingSort(FileModel.find(filter), "file", listing, "children")
+      .skip(skip)
+      .limit(listing.limit),
     FileModel.countDocuments(filter),
   ]);
 
   return {
-    folders: toPaginated(
-      folderDocs.map(toPublicFolder),
-      folderTotal,
-      pagination,
-    ),
-    files: toPaginated(fileDocs.map(toPublicFile), fileTotal, pagination),
+    folders: toPaginated(folderDocs.map(toPublicFolder), folderTotal, listing),
+    files: toPaginated(fileDocs.map(toPublicFile), fileTotal, listing),
   };
 }
 

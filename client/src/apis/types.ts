@@ -53,9 +53,17 @@ export type FolderListing = {
   ancestors: PublicFolder[];
   folders: Paginated<PublicFolder>;
   files: Paginated<PublicFile>;
+  entries?: Paginated<ListingEntry>;
 };
 
 export type LibraryListing = {
   folders: Paginated<PublicFolder>;
   files: Paginated<PublicFile>;
+  entries?: Paginated<ListingEntry>;
 };
+
+export type ListingEntry =
+  { type: "folder"; folder: PublicFolder } | { type: "file"; file: PublicFile };
+
+export type DriveItem =
+  { kind: "folder"; folder: PublicFolder } | { kind: "file"; file: PublicFile };

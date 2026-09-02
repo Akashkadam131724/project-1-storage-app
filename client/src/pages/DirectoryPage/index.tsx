@@ -3,10 +3,12 @@ import { useFolder, flattenFolderPages } from "../../hooks/use-folder.ts";
 import { useDriveWorkspace } from "../../hooks/use-drive-workspace.ts";
 import { useAuth } from "../../contexts/auth-context.ts";
 import type {
+  DriveItem,
   FolderListing,
   PublicFile,
   PublicFolder,
 } from "../../apis/types.ts";
+import type { ListingSort } from "../../apis/listing.ts";
 import { folderOrHome, paths } from "../../utils/paths.ts";
 import { PageCanvas } from "../../components/ui/page-canvas.tsx";
 import type { DriveActions } from "../../hooks/drive-types.ts";
@@ -14,6 +16,7 @@ import {
   useFolderLayout,
   type FolderLayout,
 } from "../../hooks/use-folder-layout.ts";
+import { useListingSort } from "../../hooks/use-listing-sort.ts";
 import { DriveDialogs } from "./DriveDialogs.tsx";
 import { ItemGrid } from "./ItemGrid.tsx";
 import { Toolbar } from "./Toolbar.tsx";
@@ -21,11 +24,12 @@ import { Toolbar } from "./Toolbar.tsx";
 export function DirectoryPage() {
   const { user } = useAuth();
   const { folderId } = useParams();
-  const folder = useFolder(folderId);
+  const { sort, setSort } = useListingSort();
+  const folder = useFolder(folderId, sort);
   const workspace = useDriveWorkspace();
   const { layout, setLayout } = useFolderLayout();
   const listing = folder.listing;
-  const { head, folders, files } = flattenFolderPages(listing.data);
+  const { head, folders, files, items } = flattenFolderPages(listing.data);
   const title = head?.folder.isRoot ? "Home" : (head?.folder.name ?? "Home");
   const busy = folder.create.isPending || folder.upload.isPending;
   const backTo =
@@ -43,6 +47,8 @@ export function DirectoryPage() {
             busy={busy}
             layout={layout}
             onLayoutChange={setLayout}
+            sort={sort}
+            onSortChange={setSort}
             onCreate={(name) => folder.create.mutate(name)}
             onUpload={(list) => folder.upload.mutate(list)}
           />
@@ -52,8 +58,11 @@ export function DirectoryPage() {
           head={head}
           folders={folders}
           files={files}
+          items={items}
           layout={layout}
           listing={listing}
+          sort={sort}
+          onSortChange={setSort}
           actions={workspace.actions}
         />
       </PageCanvas>
@@ -66,15 +75,21 @@ function FolderBody({
   head,
   folders,
   files,
+  items,
   layout,
   listing,
+  sort,
+  onSortChange,
   actions,
 }: {
   head: FolderListing | undefined;
   folders: PublicFolder[];
   files: PublicFile[];
+  items?: DriveItem[];
   layout: FolderLayout;
   listing: ReturnType<typeof useFolder>["listing"];
+  sort: ListingSort;
+  onSortChange: (sort: ListingSort) => void;
   actions: DriveActions;
 }) {
   return (
@@ -95,6 +110,9 @@ function FolderBody({
           layout={layout}
           folders={folders}
           files={files}
+          items={items}
+          sort={sort}
+          onSortChange={onSortChange}
           actions={actions}
           hasNextPage={listing.hasNextPage}
           isFetchingNextPage={listing.isFetchingNextPage}

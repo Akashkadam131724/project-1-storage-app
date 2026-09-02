@@ -7,34 +7,49 @@ import {
 import { toast } from "sonner";
 import { createFolder, getFolder } from "../apis/directories.ts";
 import { uploadFile } from "../apis/files.ts";
-import { nextListingPage } from "../apis/listing.ts";
-import type { FolderListing } from "../apis/types.ts";
+import {
+  DEFAULT_LISTING_SORT,
+  nextListingPage,
+  toDriveItems,
+  type ListingSort,
+} from "../apis/listing.ts";
+import type { DriveItem, FolderListing } from "../apis/types.ts";
 import { toastApiError } from "../utils/api-error.ts";
 
-export const folderKey = (folderId?: string) =>
-  ["folder", folderId ?? "root"] as const;
+export const folderKey = (folderId?: string, sort?: ListingSort) =>
+  ["folder", folderId ?? "root", sort ?? DEFAULT_LISTING_SORT] as const;
 
 export function flattenFolderPages(data?: InfiniteData<FolderListing>) {
-  if (!data) return { head: undefined, folders: [], files: [] };
+  if (!data) {
+    return { head: undefined, folders: [], files: [], items: undefined };
+  }
   return {
     head: data.pages[0],
     folders: data.pages.flatMap((page) => page.folders.items),
     files: data.pages.flatMap((page) => page.files.items),
+    items: mixedItems(data.pages),
   };
 }
 
-export function useFolderListing(folderId?: string) {
+export function useFolderListing(
+  folderId?: string,
+  sort: ListingSort = DEFAULT_LISTING_SORT,
+) {
   return useInfiniteQuery({
-    queryKey: folderKey(folderId),
-    queryFn: ({ pageParam }) => getFolder(folderId, pageParam),
+    queryKey: folderKey(folderId, sort),
+    queryFn: ({ pageParam }) => getFolder(folderId, pageParam, sort),
     initialPageParam: 1,
-    getNextPageParam: (last) => nextListingPage(last.folders, last.files),
+    getNextPageParam: (last) =>
+      nextListingPage(last.folders, last.files, last.entries),
   });
 }
 
-export function useFolder(folderId?: string) {
+export function useFolder(
+  folderId?: string,
+  sort: ListingSort = DEFAULT_LISTING_SORT,
+) {
   const queryClient = useQueryClient();
-  const listing = useFolderListing(folderId);
+  const listing = useFolderListing(folderId, sort);
 
   const invalidate = () =>
     Promise.all([
@@ -66,4 +81,9 @@ export function useFolder(folderId?: string) {
   });
 
   return { listing, create, upload };
+}
+
+function mixedItems(pages: FolderListing[]): DriveItem[] | undefined {
+  if (pages[0]?.entries == null) return undefined;
+  return pages.flatMap((page) => toDriveItems(page.entries?.items ?? []));
 }

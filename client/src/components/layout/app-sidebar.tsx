@@ -34,7 +34,7 @@ function HelpButton() {
   return (
     <button
       type="button"
-      className="mx-2 flex w-[calc(100%-1rem)] items-center gap-2.5 rounded-r-xl px-4 py-2.5 text-left text-sm text-ink hover:bg-canvas"
+      className="me-2 flex w-[calc(100%-0.5rem)] items-center gap-2.5 rounded-r-xl px-4 py-2.5 text-left text-sm text-ink hover:bg-canvas"
     >
       <HelpCircle className="size-4 text-muted" />
       Help
@@ -56,7 +56,7 @@ function SideLink({
       onClick={onNavigate}
       className={({ isActive }) =>
         [
-          "mx-2 flex items-center gap-2.5 rounded-r-xl px-4 py-2.5 text-sm transition-colors",
+          "me-2 flex items-center gap-2.5 rounded-r-xl px-4 py-2.5 text-sm transition-colors",
           isActive
             ? "bg-primary-container font-medium text-on-primary-container"
             : "text-ink hover:bg-canvas",

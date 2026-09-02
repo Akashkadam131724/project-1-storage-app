@@ -1,5 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import {
+  ArrowDown,
+  ArrowUp,
   FileArchive,
   FileAudio,
   FileImage,
@@ -9,7 +11,12 @@ import {
   Star,
 } from "lucide-react";
 import { Link } from "react-router";
-import type { PublicFile, PublicFolder } from "../../apis/types.ts";
+import {
+  listingSortForField,
+  toggleListingDir,
+  type ListingSort,
+} from "../../apis/listing.ts";
+import type { DriveItem, PublicFile, PublicFolder } from "../../apis/types.ts";
 import { useAuth } from "../../contexts/auth-context.ts";
 import type { DriveActions, DriveMode } from "../../hooks/drive-types.ts";
 import {
@@ -22,15 +29,15 @@ import { ItemMenu } from "./ItemMenu.tsx";
 import { LoadMoreSentinel, VirtualRows } from "./ItemVirtualList.tsx";
 import type { FolderLayout } from "../../hooks/use-folder-layout.ts";
 
-type DriveEntry =
-  { kind: "folder"; folder: PublicFolder } | { kind: "file"; file: PublicFile };
-
 type Props = {
   folders: PublicFolder[];
   files: PublicFile[];
+  items?: DriveItem[];
   layout?: FolderLayout;
   mode?: DriveMode;
   actions?: DriveActions;
+  sort?: ListingSort;
+  onSortChange?: (sort: ListingSort) => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
   fetchNextPage?: () => unknown;
@@ -39,9 +46,12 @@ type Props = {
 export function ItemGrid({
   folders,
   files,
+  items,
   layout = "grid",
   mode = "browse",
   actions,
+  sort,
+  onSortChange,
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
@@ -54,13 +64,14 @@ export function ItemGrid({
     );
   }
 
-  const shared = { mode, actions };
+  const entries = items ?? driveEntries(folders, files);
+  const shared = { mode, actions, entries, sort, onSortChange };
   const paging = { hasNextPage, isFetchingNextPage, fetchNextPage };
   if (layout === "list") {
-    return <ItemList folders={folders} files={files} {...shared} {...paging} />;
+    return <ItemList {...shared} {...paging} />;
   }
 
-  return <ItemCards folders={folders} files={files} {...shared} {...paging} />;
+  return <ItemCards {...shared} {...paging} />;
 }
 
 function useGridColumns() {
@@ -87,24 +98,33 @@ function gridColumns() {
 function driveEntries(
   folders: PublicFolder[],
   files: PublicFile[],
-): DriveEntry[] {
+): DriveItem[] {
   return [
     ...folders.map((folder) => ({ kind: "folder" as const, folder })),
     ...files.map((file) => ({ kind: "file" as const, file })),
   ];
 }
 
+type GridBody = {
+  entries: DriveItem[];
+  mode?: DriveMode;
+  actions?: DriveActions;
+  sort?: ListingSort;
+  onSortChange?: (sort: ListingSort) => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  fetchNextPage?: () => unknown;
+};
+
 function ItemCards({
-  folders,
-  files,
+  entries,
   mode,
   actions,
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
-}: Omit<Props, "layout">) {
+}: GridBody) {
   const columns = useGridColumns();
-  const entries = driveEntries(folders, files);
   const rows = Math.ceil(entries.length / columns);
 
   return (
@@ -151,20 +171,19 @@ function ItemCards({
 }
 
 function ItemList({
-  folders,
-  files,
+  entries,
   mode,
   actions,
+  sort,
+  onSortChange,
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
-}: Omit<Props, "layout">) {
-  const entries = driveEntries(folders, files);
-
+}: GridBody) {
   return (
     <>
       <div className="lg:rounded-2xl lg:border lg:border-line">
-        <ListHeader />
+        <ListHeader sort={sort} onSortChange={onSortChange} />
         <div className="divide-y divide-line overflow-hidden">
           <VirtualRows count={entries.length} estimateSize={56}>
             {(index) => (
@@ -187,7 +206,7 @@ function ListEntry({
   mode,
   actions,
 }: {
-  entry?: DriveEntry;
+  entry?: DriveItem;
   mode?: DriveMode;
   actions?: DriveActions;
 }) {
@@ -198,14 +217,99 @@ function ListEntry({
   return <FileRow file={entry.file} mode={mode} actions={actions} />;
 }
 
-function ListHeader() {
+function ListHeader({
+  sort,
+  onSortChange,
+}: {
+  sort?: ListingSort;
+  onSortChange?: (sort: ListingSort) => void;
+}) {
+  const dateLabel = sort?.sortBy === "opened" ? "Opened" : "Modified";
+  const dateActive = sort?.sortBy === "modified" || sort?.sortBy === "opened";
+
   return (
     <div className="sticky top-0 z-10 grid grid-cols-[1fr_2.5rem] gap-3 border-b border-line bg-canvas px-4 py-2 text-xs font-medium text-muted sm:grid-cols-[1fr_6rem_9rem_2.5rem] lg:rounded-t-2xl">
-      <span>Name</span>
+      <SortColumn
+        label="Name"
+        active={sort?.sortBy === "name"}
+        dir={sort?.sortDir}
+        onClick={nameSortClick(sort, onSortChange)}
+      />
       <span className="hidden sm:block">Size</span>
-      <span className="hidden sm:block">Modified</span>
+      <SortColumn
+        className="hidden sm:flex"
+        label={dateLabel}
+        active={dateActive}
+        dir={sort?.sortDir}
+        onClick={dateSortClick(sort, onSortChange)}
+      />
       <span className="sr-only">Actions</span>
     </div>
+  );
+}
+
+function nameSortClick(
+  sort?: ListingSort,
+  onSortChange?: (sort: ListingSort) => void,
+) {
+  if (!sort || !onSortChange) return undefined;
+  return () =>
+    onSortChange(
+      sort.sortBy === "name"
+        ? toggleListingDir(sort)
+        : listingSortForField(sort, "name"),
+    );
+}
+
+function dateSortClick(
+  sort?: ListingSort,
+  onSortChange?: (sort: ListingSort) => void,
+) {
+  if (!sort || !onSortChange) return undefined;
+  return () => {
+    const field = sort.sortBy === "opened" ? "opened" : "modified";
+    onSortChange(
+      sort.sortBy === field
+        ? toggleListingDir(sort)
+        : listingSortForField(sort, field),
+    );
+  };
+}
+
+function SortColumn({
+  label,
+  active,
+  dir,
+  onClick,
+  className = "flex",
+}: {
+  label: string;
+  active?: boolean;
+  dir?: ListingSort["sortDir"];
+  onClick?: () => void;
+  className?: string;
+}) {
+  if (!onClick) {
+    return <span className={className}>{label}</span>;
+  }
+  return (
+    <button
+      type="button"
+      className={`${className} items-center gap-1.5 text-left hover:text-ink`}
+      onClick={onClick}
+    >
+      <span className={active ? "text-ink" : undefined}>{label}</span>
+      {active ? <DirMark dir={dir} /> : null}
+    </button>
+  );
+}
+
+function DirMark({ dir }: { dir?: ListingSort["sortDir"] }) {
+  const Icon = dir === "asc" ? ArrowUp : ArrowDown;
+  return (
+    <span className="inline-flex size-4 items-center justify-center rounded-full bg-primary text-on-primary">
+      <Icon className="size-2.5" />
+    </span>
   );
 }
 

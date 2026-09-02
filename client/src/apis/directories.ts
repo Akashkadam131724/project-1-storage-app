@@ -1,9 +1,9 @@
 import { apiRequest } from "./http.ts";
-import { listQuery } from "./listing.ts";
+import { listQuery, type ListingSort } from "./listing.ts";
 import type { FolderListing, PublicFolder } from "./types.ts";
 
-export function getFolder(folderId?: string, page = 1) {
-  const query = listQuery(page);
+export function getFolder(folderId?: string, page = 1, sort?: ListingSort) {
+  const query = listQuery(page, sort);
   const path = folderId
     ? `/api/directories/${folderId}?${query}`
     : `/api/directories?${query}`;
