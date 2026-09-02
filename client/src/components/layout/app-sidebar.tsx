@@ -56,7 +56,7 @@ function SideLink({
       onClick={onNavigate}
       className={({ isActive }) =>
         [
-          "me-2 flex items-center gap-2.5 rounded-r-xl px-4 py-2.5 text-sm transition-colors",
+          "me-2 mb-1 flex items-center gap-2.5 rounded-r-xl px-4 py-2.5 text-sm transition-colors",
           isActive
             ? "bg-primary-container font-medium text-on-primary-container"
             : "text-ink hover:bg-canvas",
