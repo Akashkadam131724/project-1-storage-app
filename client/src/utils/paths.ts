@@ -8,7 +8,10 @@ export const paths = {
   trash: "/trash",
   starred: "/starred",
   recent: "/recent",
+  profile: "/profile",
+  appearance: "/appearance",
   settings: "/settings",
+  password: "/password",
   admin: "/admin",
 } as const;
 

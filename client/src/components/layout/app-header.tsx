@@ -1,19 +1,16 @@
-import { HelpCircle, Menu, Search, Settings } from "lucide-react";
-import { ThemeSwitcher } from "../ui/theme-switcher.tsx";
+import { HelpCircle, Palette, Search, Settings } from "lucide-react";
 import { BrandMark } from "../ui/brand-mark.tsx";
 import { IconButton, IconLink } from "../ui/icon-button.tsx";
 import { paths } from "../../utils/paths.ts";
 import { UserMenu } from "./user-menu.tsx";
 
-export function AppHeader({ onMenuClick }: { onMenuClick: () => void }) {
+export function AppHeader() {
   return (
     <header className="px-3 py-3 lg:px-4">
       <div className="flex items-center gap-2">
         <div className="flex w-auto shrink-0 items-center lg:w-54">
           <span className="lg:hidden">
-            <IconButton label="Open menu" onClick={onMenuClick}>
-              <Menu className="size-5" />
-            </IconButton>
+            <BrandMark compact />
           </span>
           <span className="hidden lg:block">
             <BrandMark />
@@ -28,18 +25,18 @@ export function AppHeader({ onMenuClick }: { onMenuClick: () => void }) {
             className="w-full max-w-2xl rounded-3xl bg-search py-3 pr-4 pl-14 text-sm text-ink outline-none ring-primary transition focus:ring-2"
           />
         </label>
-        <div className="flex shrink-0 items-center gap-0.5">
-          <span className="hidden lg:flex">
-            <IconButton label="Help">
-              <HelpCircle className="size-5" />
-            </IconButton>
-            <IconLink label="Settings" to={paths.settings}>
-              <Settings className="size-5" />
-            </IconLink>
-          </span>
-          <ThemeSwitcher />
-          <UserMenu />
+        <div className="hidden shrink-0 items-center gap-0.5 lg:flex">
+          <IconButton label="Help">
+            <HelpCircle className="size-5" />
+          </IconButton>
+          <IconLink label="Settings" to={paths.settings}>
+            <Settings className="size-5" />
+          </IconLink>
+          <IconLink label="Appearance" to={paths.appearance}>
+            <Palette className="size-5" />
+          </IconLink>
         </div>
+        <UserMenu />
       </div>
     </header>
   );

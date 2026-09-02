@@ -117,8 +117,12 @@ function mockSignedOut() {
   );
 }
 
-function renderPath(path: string) {
-  const router = createMemoryRouter(routes, { initialEntries: [path] });
+function renderPath(path: string, history?: string[]) {
+  const entries = history ?? [path];
+  const router = createMemoryRouter(routes, {
+    initialEntries: entries,
+    initialIndex: entries.length - 1,
+  });
   return render(
     <ThemeProvider>
       <QueryClientProvider client={createQueryClient()}>
@@ -190,16 +194,21 @@ describe("app routes", () => {
     ).toBeInTheDocument();
   });
 
-  it("hides password and danger settings for guests", async () => {
+  it("keeps guest settings as links only", async () => {
     mockSignedIn(guestUser);
     renderPath(paths.settings);
     expect(
       await screen.findByRole("heading", { name: "Settings" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Keep your files")).toBeInTheDocument();
-    expect(screen.queryByText("Password")).not.toBeInTheDocument();
+    expect(screen.getByText("Name and email")).toBeInTheDocument();
+    expect(screen.getByText("Theme for this device")).toBeInTheDocument();
+    expect(screen.queryByText("Keep your files")).not.toBeInTheDocument();
+    expect(screen.queryByText("Reset password")).not.toBeInTheDocument();
     expect(screen.queryByText("Set a password")).not.toBeInTheDocument();
     expect(screen.queryByText("Danger zone")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Sign out" }),
+    ).toBeInTheDocument();
   });
 
   it("renders the password reset page", async () => {
@@ -216,8 +225,31 @@ describe("app routes", () => {
     expect(
       await screen.findByRole("heading", { name: "Settings" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("ada@storage.app")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Back" })).toBeInTheDocument();
+    expect(screen.getByText("Name and email")).toBeInTheDocument();
+    expect(screen.getByText("Theme for this device")).toBeInTheDocument();
+    expect(screen.getByText("Reset password")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Current password")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Sign out" }),
+    ).toBeInTheDocument();
+  });
+
+  it("sends account pages back to the previous route", async () => {
+    mockSignedIn();
+    const user = userEvent.setup();
+    renderPath(paths.profile, [paths.home, paths.settings, paths.profile]);
+    expect(
+      await screen.findByRole("heading", { name: "Profile" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Back" }));
+    expect(
+      await screen.findByRole("heading", { name: "Settings" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Back" }));
+    expect(
+      await screen.findByRole("heading", { name: "Home" }),
+    ).toBeInTheDocument();
   });
 
   it("keeps non-admins off the admin page", async () => {
@@ -246,26 +278,52 @@ describe("app routes", () => {
     });
   });
 
-  it("lists five appearance themes", async () => {
+  it("lists five appearance themes on their own page", async () => {
     mockSignedIn();
-    const user = userEvent.setup();
-    renderPath(paths.home);
-    await screen.findByRole("heading", { name: "Home" });
-    await user.click(screen.getByRole("button", { name: "Choose theme" }));
-    const choices = screen
-      .getAllByRole("button")
-      .map((button) => button.textContent)
-      .filter((name) =>
-        ["Ocean", "Paper", "Sand", "Midnight", "Nord"].includes(name ?? ""),
-      );
-    expect(choices[0]).toBe("Ocean");
-    expect(screen.getByRole("button", { name: "Paper" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Ocean" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Sand" })).toBeInTheDocument();
+    renderPath(paths.appearance);
     expect(
-      screen.getByRole("button", { name: "Midnight" }),
+      await screen.findByRole("heading", { name: "Appearance" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Nord" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Ocean/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Paper/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Sand/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Midnight/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Nord/ })).toBeInTheDocument();
+  });
+
+  it("renders the profile page", async () => {
+    mockSignedIn();
+    renderPath(paths.profile);
+    expect(
+      await screen.findByRole("heading", { name: "Profile" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("ada@storage.app")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Ada Lovelace")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Current password")).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole("link", { name: "Settings" }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getByRole("link", { name: /Reset password/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Sign out" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the reset password page", async () => {
+    mockSignedIn();
+    renderPath(paths.password);
+    expect(
+      await screen.findByRole("heading", { name: "Reset password" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Current password")).toBeInTheDocument();
+    expect(screen.getByLabelText("New password")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Sign out" }),
+    ).toBeInTheDocument();
   });
 
   it("switches Home between grid and list view", async () => {

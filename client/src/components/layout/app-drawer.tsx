@@ -29,8 +29,8 @@ export function AppDrawer({ open, onClose }: Props) {
       />
       <div
         className={[
-          "absolute inset-y-0 left-0 flex w-[70%] max-w-xs flex-col rounded-r-3xl bg-chrome shadow-raise transition-transform",
-          open ? "translate-x-0" : "-translate-x-full",
+          "absolute inset-y-0 right-0 flex w-[70%] max-w-xs flex-col rounded-l-3xl bg-chrome shadow-raise transition-transform",
+          open ? "translate-x-0" : "translate-x-full",
         ].join(" ")}
       >
         <div className="flex items-center justify-between border-b border-line px-4 py-3">
@@ -40,7 +40,10 @@ export function AppDrawer({ open, onClose }: Props) {
           </IconButton>
         </div>
         <div className="min-h-0 flex-1">
-          <AppSidebar onNavigate={() => window.setTimeout(onClose, 0)} />
+          <AppSidebar
+            toolsOnly
+            onNavigate={() => window.setTimeout(onClose, 0)}
+          />
         </div>
       </div>
     </div>

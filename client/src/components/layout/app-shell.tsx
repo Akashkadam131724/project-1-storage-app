@@ -27,7 +27,7 @@ export function AppShell() {
       <AuthBubbles />
       <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
         <OAuthNotice />
-        <AppHeader onMenuClick={() => setMenuPath(pathname)} />
+        <AppHeader />
         <GuestBanner />
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <div className="hidden lg:block">
@@ -39,7 +39,7 @@ export function AppShell() {
         </div>
       </div>
       <AppDrawer open={menuOpen} onClose={() => setMenuPath(null)} />
-      <BottomNav />
+      <BottomNav onMenuClick={() => setMenuPath(pathname)} />
     </div>
   );
 }
