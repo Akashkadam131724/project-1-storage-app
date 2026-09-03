@@ -1,0 +1,12 @@
+name: storage-client
+
+services:
+  client:
+    image: akash131/storage-client:${IMAGE_TAG:-latest}
+    ports:
+      - "3002:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      API_UPSTREAM: ${API_UPSTREAM:-http://host.docker.internal:4000}
+    restart: unless-stopped

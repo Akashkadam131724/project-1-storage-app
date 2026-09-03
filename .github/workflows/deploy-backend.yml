@@ -1,4 +1,4 @@
-name: Deploy Storage to EC2
+name: Deploy Backend to EC2
 
 on:
   workflow_dispatch:
@@ -7,6 +7,10 @@ on:
         description: "Docker image tag"
         required: true
         default: "latest"
+      git_branch:
+        description: "Branch to pull on the server"
+        required: false
+        default: "main"
 
 jobs:
   deploy:
@@ -22,5 +26,12 @@ jobs:
           script: |
             set -e
             export IMAGE_TAG="${{ github.event.inputs.image_tag }}"
+            export GIT_BRANCH="${{ github.event.inputs.git_branch }}"
+
             cd ~/project-1-storage-app-v2
-            bash ./deploy.sh
+            git fetch origin "$GIT_BRANCH"
+            git checkout "$GIT_BRANCH"
+            git pull --ff-only origin "$GIT_BRANCH"
+
+            cd server
+            bash ./deploy-backend-docker.sh

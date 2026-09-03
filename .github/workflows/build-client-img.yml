@@ -12,13 +12,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     env:
       IMAGE_NAME: akash131/storage-client
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Set Image Tag
-        run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+        run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -35,3 +38,8 @@ jobs:
             ./client
           docker push "$IMAGE_NAME:latest"
           docker push "$IMAGE_NAME:$IMAGE_TAG"
+
+      - name: Published tags
+        run: |
+          echo "$IMAGE_NAME:latest"
+          echo "$IMAGE_NAME:$IMAGE_TAG"

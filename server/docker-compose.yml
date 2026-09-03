@@ -1,0 +1,19 @@
+name: storage-api
+
+services:
+  api:
+    image: akash131/storage-server:${IMAGE_TAG:-latest}
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      IMAGE_TAG: ${IMAGE_TAG:-latest}
+    volumes:
+      - uploads:/data/blobs
+    restart: unless-stopped
+
+volumes:
+  uploads:
