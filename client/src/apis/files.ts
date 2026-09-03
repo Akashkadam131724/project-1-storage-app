@@ -1,3 +1,4 @@
+import { env } from "../utils/env.ts";
 import { apiRequest } from "./http.ts";
 import type { PublicFile } from "./types.ts";
 
@@ -59,7 +60,7 @@ export function purgeFile(fileId: string) {
 }
 
 export function fileContentPath(fileId: string) {
-  return `/api/files/${fileId}/content`;
+  return `${env.VITE_API_URL}/api/files/${fileId}/content`;
 }
 
 export function fileDownloadPath(fileId: string) {

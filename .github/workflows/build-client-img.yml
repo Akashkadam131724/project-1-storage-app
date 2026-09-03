@@ -29,7 +29,7 @@ jobs:
       - name: Build and Push
         run: |
           docker build \
-            --build-arg VITE_API_URL= \
+            --build-arg VITE_API_URL="${{ secrets.VITE_API_URL }}" \
             -t "$IMAGE_NAME:latest" \
             -t "$IMAGE_NAME:$IMAGE_TAG" \
             ./client

@@ -33,7 +33,12 @@ docker compose up -d --build
 - Server: port **4000** (not AMS 3004)
 - Mongo: only on the internal compose network unless you set `MONGODB_URI` to Atlas
 
-On EC2, host nginx should proxy `storage.akashkadam.dev` → `localhost:3002`.
+On EC2, host nginx matches AMS:
+
+- `storage.akashkadam.dev` → `localhost:3002` (client)
+- `storage-api.akashkadam.dev` → `localhost:4000` (API)
+
+Build the client with `--build-arg VITE_API_URL=https://storage-api.akashkadam.dev`.
 
 Build each image on its own:
 

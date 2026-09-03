@@ -20,7 +20,12 @@ import { notFound } from "./shared/middleware/not-found.js";
 export function createApp() {
   const app = express();
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      // UI is on storage.akashkadam.dev; file previews load from storage-api.
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+    }),
+  );
   app.use(
     cors({
       origin: env.CLIENT_ORIGIN,
