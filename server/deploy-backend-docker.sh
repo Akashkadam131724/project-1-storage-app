@@ -53,12 +53,26 @@ set +a
 
 APP_PORT="${PORT:-4000}"
 
+free_host_port() {
+  local port="$1"
+  local ids
+  ids="$(docker ps -q --filter "publish=${port}" || true)"
+  if [ -n "${ids}" ]; then
+    echo "Port ${port} already allocated; stopping old container(s)"
+    # shellcheck disable=SC2086
+    docker stop ${ids}
+    # shellcheck disable=SC2086
+    docker rm ${ids}
+  fi
+}
+
 echo ""
 echo "Pulling Docker image..."
 IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" pull
 
 echo ""
 echo "Restarting containers..."
+free_host_port "${APP_PORT}"
 IMAGE_TAG="$IMAGE_TAG" "${COMPOSE[@]}" up -d
 
 echo ""

@@ -9,6 +9,16 @@ cd "$(dirname "$0")"
 echo "Deploying akash131/storage-client:$IMAGE_TAG"
 
 IMAGE_TAG="$IMAGE_TAG" docker compose pull
+
+ids="$(docker ps -q --filter "publish=${CLIENT_PORT}" || true)"
+if [ -n "${ids}" ]; then
+  echo "Port ${CLIENT_PORT} already allocated; stopping old container(s)"
+  # shellcheck disable=SC2086
+  docker stop ${ids}
+  # shellcheck disable=SC2086
+  docker rm ${ids}
+fi
+
 IMAGE_TAG="$IMAGE_TAG" docker compose up -d
 
 sleep 8
