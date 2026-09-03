@@ -1,5 +1,5 @@
 import type { Response } from "express";
-import { env } from "../../config/env.js";
+import { cookieSecure } from "../../config/env.js";
 import {
   SESSION_COOKIE_NAME,
   SESSION_TTL_MS,
@@ -11,7 +11,7 @@ const cookieOptions = {
   httpOnly: true,
   signed: true,
   sameSite: "lax" as const,
-  secure: env.NODE_ENV === "production",
+  secure: cookieSecure,
   path: "/",
   maxAge: SESSION_TTL_MS,
 };

@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import axios from "axios";
 import type { Response } from "express";
 import { OAuth2Client, type TokenPayload } from "google-auth-library";
-import { env } from "../../config/env.js";
+import { cookieSecure, env } from "../../config/env.js";
 import {
   GITHUB_OAUTH_SCOPES,
   GITHUB_STATE_COOKIE,
@@ -21,7 +21,7 @@ const stateCookie = {
   httpOnly: true,
   signed: true,
   sameSite: "lax" as const,
-  secure: env.NODE_ENV === "production",
+  secure: cookieSecure,
   path: "/",
   maxAge: OAUTH_STATE_TTL_MS,
 };

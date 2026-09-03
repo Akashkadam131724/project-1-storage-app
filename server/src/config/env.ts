@@ -19,6 +19,14 @@ const envSchema = z
     CLIENT_ORIGIN: z.string().default("http://localhost:5173"),
     MONGODB_URI: z.string().default("mongodb://127.0.0.1:27017/storage-app-v2"),
     COOKIE_SECRET: z.string().min(16).default("dev-only-cookie-secret-change"),
+    COOKIE_SECURE: z
+      .string()
+      .optional()
+      .transform((value) => {
+        if (value === "true") return "true";
+        if (value === "false") return "false";
+        return undefined;
+      }),
     GOOGLE_CLIENT_ID: z.string().optional(),
     GITHUB_CLIENT_ID: z.string().optional(),
     GITHUB_CLIENT_SECRET: z.string().optional(),
@@ -61,3 +69,10 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 export type Env = typeof env;
+
+export const cookieSecure =
+  env.COOKIE_SECURE === "true"
+    ? true
+    : env.COOKIE_SECURE === "false"
+      ? false
+      : env.NODE_ENV === "production";

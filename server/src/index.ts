@@ -7,8 +7,8 @@ await connectDb();
 
 const app = createApp();
 
-const server = app.listen(env.PORT, () => {
-  logger.info(`Storage API http://127.0.0.1:${env.PORT}`);
+const server = app.listen(env.PORT, "0.0.0.0", () => {
+  logger.info(`Storage API http://0.0.0.0:${String(env.PORT)}`);
 });
 
 async function shutdown() {
@@ -18,5 +18,9 @@ async function shutdown() {
 }
 
 process.on("SIGINT", () => {
+  void shutdown();
+});
+
+process.on("SIGTERM", () => {
   void shutdown();
 });

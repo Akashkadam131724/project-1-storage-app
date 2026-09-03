@@ -1,0 +1,51 @@
+services:
+  # Local Mongo: docker compose --profile local-mongo up -d
+  # EC2 uses Atlas via MONGODB_URI — do not enable this profile there.
+  mongo:
+    image: mongo:7
+    profiles: ["local-mongo"]
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+
+  server:
+    build: ./server
+    image: akash131/storage-server:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      MONGODB_URI: ${MONGODB_URI}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:3002}
+      COOKIE_SECRET: ${COOKIE_SECRET:?Set COOKIE_SECRET in .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL:-http://localhost:3002/api/auth/github/callback}
+      UPLOAD_DIR: /data/blobs
+    volumes:
+      - uploads:/data/blobs
+
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_API_URL: ${VITE_API_URL:-}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+    image: akash131/storage-client:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "3002:80"
+    environment:
+      API_UPSTREAM: ${API_UPSTREAM:-http://server:4000}
+
+volumes:
+  mongo_data:
+  uploads:
