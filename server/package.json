@@ -38,6 +38,7 @@
     "helmet": "^8.1.0",
     "mongoose": "^8.18.0",
     "multer": "^2.3.0",
+    "resend": "^4.8.0",
     "zod": "^4.1.5"
   },
   "devDependencies": {

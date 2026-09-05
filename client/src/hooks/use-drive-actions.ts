@@ -33,7 +33,7 @@ export function useDriveActions() {
   return { rename, star, ...place };
 }
 
-function useInvalidateDrive() {
+export function useInvalidateDrive() {
   const queryClient = useQueryClient();
   return () =>
     Promise.all([

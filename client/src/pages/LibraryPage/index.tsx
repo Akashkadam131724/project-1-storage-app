@@ -77,7 +77,7 @@ export function RecentPage() {
       icon={Clock}
       mode="recent"
       empty="No recent files"
-      hint="Files you open will show up here"
+      hint="Files you upload or open will show up here"
       loading={query.isPending}
       folders={[]}
       files={flattenRecentPages(query.data)}

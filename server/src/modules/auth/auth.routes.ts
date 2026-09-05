@@ -32,6 +32,7 @@ authRouter.post("/register", validateBody(registerSchema), register);
 authRouter.post("/login", validateBody(loginSchema), login);
 authRouter.post("/guest", guestLogin);
 authRouter.post("/google", validateBody(googleLoginSchema), googleLogin);
+authRouter.get("/github", githubStart);
 authRouter.get("/github/start", githubStart);
 authRouter.get("/github/callback", githubCallback);
 authRouter.post("/github", validateBody(githubLoginSchema), githubLogin);

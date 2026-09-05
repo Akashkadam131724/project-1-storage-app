@@ -1,7 +1,6 @@
 import {
   useInfiniteQuery,
   useMutation,
-  useQueryClient,
   type InfiniteData,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -15,6 +14,7 @@ import {
 } from "../apis/listing.ts";
 import type { FolderListing } from "../apis/types.ts";
 import { toastApiError } from "../utils/api-error.ts";
+import { useInvalidateDrive } from "./use-drive-actions.ts";
 
 export const folderKey = (folderId?: string, sort?: ListingSort) =>
   ["folder", folderId ?? "root", sort ?? DEFAULT_LISTING_SORT] as const;
@@ -48,15 +48,8 @@ export function useFolder(
   folderId?: string,
   sort: ListingSort = DEFAULT_LISTING_SORT,
 ) {
-  const queryClient = useQueryClient();
   const listing = useFolderListing(folderId, sort);
-
-  const invalidate = () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["folder"] }),
-      queryClient.invalidateQueries({ queryKey: ["storage-usage"] }),
-      queryClient.invalidateQueries({ queryKey: ["trash"] }),
-    ]);
+  const invalidate = useInvalidateDrive();
 
   const create = useMutation({
     mutationFn: (name: string) => createFolder(name, folderId),

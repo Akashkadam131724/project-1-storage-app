@@ -2,228 +2,162 @@ export type RoadmapItem = {
   id: string;
   title: string;
   detail: string;
+  /** Flip to true in this file when the step is finished. The UI does not save checks. */
+  done: boolean;
 };
 
-export type RoadmapSection = {
-  id: string;
-  title: string;
-  items: RoadmapItem[];
-};
-
-export const leftoverSections: RoadmapSection[] = [
+export const roadmapItems: RoadmapItem[] = [
   {
-    id: "deploy-now",
-    title: "Deploy this slice first",
-    items: [
-      {
-        id: "secrets",
-        title: "Production secrets and HTTPS",
-        detail:
-          "COOKIE_SECRET is a placeholder. Set a real secret, secure cookies, CLIENT_ORIGIN, and TLS before the app leaves localhost.",
-      },
-      {
-        id: "mongo-atlas",
-        title: "Managed MongoDB",
-        detail:
-          "Local Mongo is fine for dev. Production needs Atlas or similar so data survives the host.",
-      },
-      {
-        id: "cloud-host",
-        title: "Host the API and the client",
-        detail:
-          "No production target yet. Pick a host (Fly, Railway, Render, or AWS) and prove sign-in, Home, and upload on a public URL.",
-      },
-      {
-        id: "persist-files",
-        title: "Persistent file storage",
-        detail:
-          "Local UPLOAD_DIR dies when a container is replaced. Attach a volume for this first deploy, or go straight to S3/R2. Without this, uploads will not last.",
-      },
-    ],
+    id: "repo-setup",
+    title: "Repo setup: Prettier and Husky",
+    detail:
+      "Root and package lint-staged, format on commit, shared Prettier config.",
+    done: true,
   },
   {
-    id: "storage",
-    title: "Files and storage",
-    items: [
-      {
-        id: "s3",
-        title: "S3-compatible object storage",
-        detail:
-          "After the first cloud deploy is green, replace local blobs with S3, R2, or GCS. A disk volume is only a stopgap.",
-      },
-      {
-        id: "resumable-upload",
-        title: "Resumable and multipart uploads",
-        detail:
-          "Uploads go through memory with a 100 MB cap, one file at a time. Need chunked uploads for large files and flaky networks.",
-      },
-      {
-        id: "folder-upload",
-        title: "Folder upload and drag-and-drop",
-        detail:
-          "Home only has a file picker. Drop files onto a folder, and upload a whole directory tree.",
-      },
-      {
-        id: "thumbnails",
-        title: "Image and video thumbnails",
-        detail:
-          "Grid still shows generic icons. Generate and cache previews for photos and videos.",
-      },
-      {
-        id: "folder-zip",
-        title: "Download a folder as a zip",
-        detail: "Files can download. Folders cannot be exported in one shot.",
-      },
-    ],
+    id: "server-ts-tests",
+    title: "Backend TypeScript and tests",
+    detail:
+      "Express + TS, Vitest, Mongo memory server, health and module tests.",
+    done: true,
   },
   {
-    id: "product",
-    title: "Product",
-    items: [
-      {
-        id: "search",
-        title: "Search that actually finds files",
-        detail:
-          "The header search box is visual only. Index names (then contents) and show results.",
-      },
-      {
-        id: "sharing",
-        title: "Sharing and public links",
-        detail:
-          "Drives are private. Add view/edit links, expiry, and optional passwords.",
-      },
-      {
-        id: "help",
-        title: "Help page",
-        detail:
-          "Help in the header and drawer does nothing. Write a short guide for guests and accounts.",
-      },
-      {
-        id: "more-storage",
-        title: "Paid or requestable extra storage",
-        detail:
-          "Get more storage in the sidebar is a dead button. Wire it to a plan, request, or admin grant.",
-      },
-      {
-        id: "mobile-new-folder",
-        title: "New folder on small screens",
-        detail: "The New button is hidden below the sm breakpoint.",
-      },
-    ],
+    id: "first-auth",
+    title: "First auth (sessions and accounts)",
+    detail:
+      "Cookie sessions, password users, guest, logout. This was the first login path, before email OTP.",
+    done: true,
   },
   {
-    id: "admin",
-    title: "Admin",
-    items: [
-      {
-        id: "admin-search",
-        title: "Search and filter users",
-        detail:
-          "Admin is a flat list. Filter by role, guest, and disabled, and search by name or email.",
-      },
-      {
-        id: "admin-quota",
-        title: "Per-user storage usage and caps",
-        detail:
-          "Admins cannot see how much a user uses or raise their limit. Wire this to Get more storage.",
-      },
-      {
-        id: "admin-invite",
-        title: "Invite or create accounts",
-        detail:
-          "New users only arrive through signup or OAuth. Let an admin invite by email or create a user.",
-      },
-      {
-        id: "admin-stats",
-        title: "Admin overview",
-        detail:
-          "No counts for users, guests, files, or total bytes. Add a small dashboard above the table.",
-      },
-      {
-        id: "admin-user-drive",
-        title: "Inspect a user’s drive",
-        detail:
-          "Admins can disable or delete an account but cannot open that user’s files to debug abuse.",
-      },
-    ],
+    id: "folders-files",
+    title: "Folders and files on the user",
+    detail:
+      "Root directory per account, upload to local disk, listing, trash, starred, recent, quotas.",
+    done: true,
   },
   {
-    id: "auth",
-    title: "Auth and mail",
-    items: [
-      {
-        id: "email-otp",
-        title: "Send OTP by email",
-        detail:
-          "Signup and reset codes only log in development. Add SMTP or a mail API for production.",
-      },
-      {
-        id: "rate-limit",
-        title: "Rate limits on auth and uploads",
-        detail:
-          "OTP, login, and upload routes are unbounded. Add per-IP and per-user limits.",
-      },
-    ],
+    id: "client-setup",
+    title: "Client setup",
+    detail: "Vite React, routing, theme, shared UI, React Query.",
+    done: true,
   },
   {
-    id: "deploy-later",
-    title: "Deploy later",
-    items: [
-      {
-        id: "docker",
-        title: "Docker images and Compose",
-        detail:
-          "There is no Dockerfile. Package API, client, and Mongo once the first host is proven.",
-      },
-      {
-        id: "ci",
-        title: "CI on every push",
-        detail:
-          "No GitHub Actions. Run client and server check (typecheck, lint, tests) in CI.",
-      },
-    ],
+    id: "client-wired",
+    title: "Client wired to the API",
+    detail:
+      "Home, upload, folders, profile, settings, admin. Vite proxy to the local API.",
+    done: true,
+  },
+  {
+    id: "first-deploy",
+    title: "First production deploy",
+    detail:
+      "Docker images on EC2 (storage.akashkadam.dev). Live at that time: password register without OTP. Disk uploads. Auth with OTP/OAuth on that host was not proven.",
+    done: true,
+  },
+  {
+    id: "local-full-auth",
+    title: "Full auth on local: OTP, Google, GitHub",
+    detail:
+      "Resend 4-digit codes, register/login/forgot, resend timer, Google popup, GitHub callback, guest convert and wipe on sign-out. Working on localhost.",
+    done: true,
+  },
+  {
+    id: "prod-auth",
+    title: "Verify that auth on production",
+    detail:
+      "Redeploy the OTP/OAuth build. Prove register, login, forgot password, Google, GitHub, and guest on the live URL. Resend, HTTPS cookies, CLIENT_ORIGIN, Google/GitHub prod origins. Fix locally and redeploy if needed. Do not start S3 until this is green.",
+    done: false,
+  },
+  {
+    id: "s3-local",
+    title: "S3 on local",
+    detail:
+      "Replace local UPLOAD_DIR with S3 (or R2). Prove upload, download, delete, guest wipe.",
+    done: false,
+  },
+  {
+    id: "s3-prod",
+    title: "S3 on production",
+    detail: "Deploy S3 and confirm files survive on EC2.",
+    done: false,
+  },
+  {
+    id: "resumable-upload",
+    title: "Resumable and multipart uploads",
+    detail: "Local then prod. Uploads still go through memory (100 MB cap).",
+    done: false,
+  },
+  {
+    id: "folder-upload",
+    title: "Folder upload and drag-and-drop",
+    detail: "Local then prod. Home still uses a file picker only.",
+    done: false,
+  },
+  {
+    id: "thumbnails",
+    title: "Image and video thumbnails",
+    detail: "Local then prod. Grid still shows generic icons.",
+    done: false,
+  },
+  {
+    id: "folder-zip",
+    title: "Download a folder as a zip",
+    detail: "Local then prod.",
+    done: false,
+  },
+  {
+    id: "search",
+    title: "Search that finds files",
+    detail: "Header search is visual only. Local then prod.",
+    done: false,
+  },
+  {
+    id: "sharing",
+    title: "Sharing and public links",
+    detail: "View/edit links, expiry, optional password. Local then prod.",
+    done: false,
+  },
+  {
+    id: "help",
+    title: "Help page",
+    detail: "Header Help does nothing yet.",
+    done: false,
+  },
+  {
+    id: "more-storage",
+    title: "Extra storage",
+    detail: "Sidebar Get more storage is a dead button.",
+    done: false,
+  },
+  {
+    id: "mobile-new-folder",
+    title: "New folder on small screens",
+    detail: "The New button is hidden below the sm breakpoint.",
+    done: false,
+  },
+  {
+    id: "admin-tools",
+    title: "Admin search, quotas, invites, and stats",
+    detail: "Admin is still a flat list. No usage caps, invites, or overview.",
+    done: false,
+  },
+  {
+    id: "rate-limit",
+    title: "Rate limits on auth and uploads",
+    detail: "OTP, login, and upload routes are unbounded.",
+    done: false,
+  },
+  {
+    id: "ci",
+    title: "CI on every push",
+    detail: "Typecheck, lint, and tests in GitHub Actions.",
+    done: false,
   },
   {
     id: "hardening",
-    title: "Hardening",
-    items: [
-      {
-        id: "virus-scan",
-        title: "Scan uploads",
-        detail:
-          "Uploaded blobs are stored as-is. Add a malware scan before they are served.",
-      },
-      {
-        id: "back-nav",
-        title: "Account back button uses history",
-        detail:
-          "Settings, Profile, and Appearance still feel like they dump you on Home. Finish in-app back.",
-      },
-      {
-        id: "backups",
-        title: "Backups and restore",
-        detail:
-          "No snapshot of Mongo or object storage. Schedule backups and a restore drill.",
-      },
-      {
-        id: "observability",
-        title: "Logs, metrics, and error tracking",
-        detail:
-          "Logger is local. Add structured logs, uptime on /health, and an error reporter.",
-      },
-    ],
+    title: "Backups, logs, and upload scanning",
+    detail: "No Mongo/S3 snapshots, no error reporter, blobs stored as-is.",
+    done: false,
   },
 ];
-
-export const leftoverItems = leftoverSections.flatMap(
-  (section) => section.items,
-);
-
-export const shippedItems = [
-  "Password, Google, GitHub, and guest sign-in",
-  "Folders, files, trash, starred, and recent",
-  "Paged listings and virtualized Home",
-  "Storage caps for accounts and guests",
-  "Themes, profile, password, and settings pages",
-  "Admin user disable, delete, and role changes",
-] as const;

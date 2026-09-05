@@ -38,7 +38,7 @@ export function SettingsPage() {
           to={paths.roadmap}
           icon={ListChecks}
           title="Roadmap"
-          hint="Deploy first, then S3 and the rest"
+          hint="Auth on prod, then S3"
         />
         {isAdmin(user) ? (
           <AccountTile

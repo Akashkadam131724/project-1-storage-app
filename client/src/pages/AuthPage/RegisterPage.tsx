@@ -1,12 +1,16 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
-import { registerAccount, requestSignupCode, signIn } from "../../apis/auth.ts";
+import { registerAccount, requestAuthCode } from "../../apis/auth.ts";
 import { ApiError } from "../../apis/http.ts";
+import { ContinueAsGuest } from "../../components/continue-as-guest.tsx";
+import { SocialAuthButtons } from "../../components/social-auth-buttons.tsx";
 import { Button } from "../../components/ui/button.tsx";
 import { useAuth } from "../../contexts/auth-context.ts";
 import { GuestRoute } from "../../components/routes/guest-route.tsx";
 import { paths } from "../../utils/paths.ts";
+import { OtpStep } from "./OtpStep.tsx";
+import { StepProgress } from "./StepProgress.tsx";
 import { AuthField, AuthShell, authFormClass } from "./AuthShell.tsx";
 
 export function RegisterPage() {
@@ -18,7 +22,7 @@ export function RegisterPage() {
 }
 
 function RegisterForm() {
-  const { user, setSession, refresh } = useAuth();
+  const { user, refresh } = useAuth();
   const navigate = useNavigate();
   const [draft, setDraft] = useState({
     name: "",
@@ -30,19 +34,31 @@ function RegisterForm() {
   const [busy, setBusy] = useState(false);
   const converting = Boolean(user?.isGuest);
 
+  async function sendCode() {
+    await requestAuthCode({
+      email: draft.email,
+      action: "register",
+    });
+    toast.success("Verification code sent to your email");
+    setAwaitingCode(true);
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
     try {
-      await submitRegister(draft, awaitingCode, setAwaitingCode);
-      if (!awaitingCode) return;
+      if (!awaitingCode) {
+        await sendCode();
+        return;
+      }
+      await registerAccount(draft);
       if (converting) {
         await refresh();
-      } else {
-        const profile = await signIn(draft.email, draft.password);
-        setSession(profile);
+        void navigate(paths.home);
+        return;
       }
-      void navigate(paths.home);
+      toast.success("Account created. Sign in with the code we email you.");
+      void navigate(paths.login);
     } catch (error) {
       toast.error(
         error instanceof ApiError ? error.message : "Could not create account",
@@ -54,22 +70,48 @@ function RegisterForm() {
 
   return (
     <AuthShell
-      title={converting ? "Keep your files" : "Create your account"}
+      title={
+        awaitingCode
+          ? "Verify your email"
+          : converting
+            ? "Keep your files"
+            : "Create your account"
+      }
       subtitle={
-        converting
-          ? "Create an account to keep this drive after you leave."
-          : "Get a verification code, then start storing files."
+        awaitingCode
+          ? "Verify your email to complete registration"
+          : converting
+            ? "Create an account to keep this drive after you leave. We will email a 4-digit code."
+            : "We will email a 4-digit code, then you can start storing files."
       }
     >
       <form
         className={authFormClass}
         onSubmit={(event) => void handleSubmit(event)}
       >
-        <RegisterFields
-          draft={draft}
-          awaitingCode={awaitingCode}
-          onChange={setDraft}
-        />
+        <StepProgress step={awaitingCode ? "otp" : "credentials"} />
+        {awaitingCode ? (
+          <OtpStep
+            email={draft.email}
+            code={draft.code}
+            onCode={(code) => setDraft({ ...draft, code })}
+            busy={busy}
+            onBack={() => {
+              setAwaitingCode(false);
+              setDraft({ ...draft, code: "" });
+            }}
+            onResend={async () => {
+              setBusy(true);
+              try {
+                await sendCode();
+              } finally {
+                setBusy(false);
+              }
+            }}
+          />
+        ) : (
+          <RegisterFields draft={draft} onChange={setDraft} />
+        )}
         <Button
           type="submit"
           shape="rounded"
@@ -78,19 +120,36 @@ function RegisterForm() {
           disabled={busy}
           className="font-semibold"
         >
-          {awaitingCode
-            ? converting
-              ? "Save account"
-              : "Create account"
-            : "Send code"}
+          {busy
+            ? awaitingCode
+              ? converting
+                ? "Saving…"
+                : "Creating account…"
+              : "Sending code…"
+            : awaitingCode
+              ? converting
+                ? "Save account"
+                : "Create account"
+              : "Continue"}
         </Button>
+        {awaitingCode ? null : converting ? null : <SocialAuthButtons />}
       </form>
-      <p className="mt-6 text-center text-sm text-muted">
-        Already have an account?{" "}
-        <Link className="font-medium text-primary" to={paths.login}>
-          Sign in
-        </Link>
-      </p>
+      {awaitingCode || converting ? (
+        <p className="mt-6 text-center text-sm text-muted">
+          Already have an account?{" "}
+          <Link className="font-medium text-primary underline" to={paths.login}>
+            Sign in
+          </Link>
+        </p>
+      ) : (
+        <p className="mt-6 text-center text-sm text-muted">
+          Already have an account?{" "}
+          <Link className="font-medium text-primary underline" to={paths.login}>
+            Sign in
+          </Link>{" "}
+          or <ContinueAsGuest />
+        </p>
+      )}
     </AuthShell>
   );
 }
@@ -102,31 +161,11 @@ type Draft = {
   code: string;
 };
 
-async function submitRegister(
-  draft: Draft,
-  awaitingCode: boolean,
-  setAwaitingCode: (value: boolean) => void,
-) {
-  if (!awaitingCode) {
-    const result = await requestSignupCode(draft.email);
-    toast.message(
-      result?.code
-        ? `Verification code: ${result.code}`
-        : "Verification code sent",
-    );
-    setAwaitingCode(true);
-    return;
-  }
-  await registerAccount(draft);
-}
-
 function RegisterFields({
   draft,
-  awaitingCode,
   onChange,
 }: {
   draft: Draft;
-  awaitingCode: boolean;
   onChange: (draft: Draft) => void;
 }) {
   const patch = (field: keyof Draft, value: string) =>
@@ -164,18 +203,6 @@ function RegisterFields({
         required
         minLength={8}
       />
-      {awaitingCode ? (
-        <AuthField
-          id="code"
-          label="Verification code"
-          placeholder="4-digit code"
-          value={draft.code}
-          onChange={(event) => patch("code", event.target.value)}
-          required
-          inputMode="numeric"
-          maxLength={4}
-        />
-      ) : null}
     </>
   );
 }

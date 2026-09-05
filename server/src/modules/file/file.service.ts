@@ -53,6 +53,7 @@ export async function uploadFile(
       size: uploaded.size,
       mimeType: uploaded.mimetype || "application/octet-stream",
       storageKey,
+      lastOpenedAt: new Date(),
     });
     await adjustFolderSize(parentId, uploaded.size);
     return toPublicFile(file);

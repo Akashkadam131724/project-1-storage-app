@@ -6,21 +6,32 @@ import {
   BCRYPT_ROUNDS,
   BCRYPT_ROUNDS_TEST,
   DEFAULT_AUTH_PROVIDER,
+  OTP_PURPOSE_LOGIN,
+  OTP_PURPOSE_RESET,
+  OTP_PURPOSE_SIGNUP,
   ROOT_FOLDER_NAME,
   type AuthProvider,
 } from "../../shared/constants/index.js";
+import { deliverOtpCode } from "../../shared/lib/mail.js";
 import { isDuplicateKeyError } from "../../shared/db/duplicate-key.js";
 import { ApiError, ErrorCode, HttpStatus } from "../../shared/http/index.js";
 import { DirectoryModel } from "../directory/directory.model.js";
 import { UserModel, toPublicUser, type UserDoc } from "../user/user.model.js";
-import type { OAuthProfile, RegisterBody, SignInResult } from "./auth.types.js";
+import type {
+  OAuthProfile,
+  RegisterBody,
+  RequestOtpBody,
+  SignInResult,
+} from "./auth.types.js";
 import {
   profileFromGithubCode,
-  profileFromGoogleIdToken,
+  profileFromGoogleAuthCode,
 } from "./oauth.service.js";
 import {
+  consumeLoginCode,
   consumeResetCode,
   consumeSignupCode,
+  saveLoginCode,
   saveResetCode,
   saveSignupCode,
 } from "./otp.service.js";
@@ -38,15 +49,20 @@ type NewAccountInput = {
   isGuest?: boolean;
 };
 
+export async function requestAuthCode(input: RequestOtpBody) {
+  if (input.action === "register") {
+    return requestSignupCode(input.email);
+  }
+
+  await loadPasswordUser(input.email, input.password ?? "");
+  const code = await saveLoginCode(input.email);
+  return deliverOtpCode(input.email, code, OTP_PURPOSE_LOGIN);
+}
+
 export async function requestSignupCode(email: string) {
   await assertEmailAvailable(email);
   const code = await saveSignupCode(email);
-
-  if (env.NODE_ENV === "production") {
-    return {};
-  }
-
-  return { code };
+  return deliverOtpCode(email, code, OTP_PURPOSE_SIGNUP);
 }
 
 export async function registerAccount(input: RegisterBody) {
@@ -107,26 +123,15 @@ export async function convertGuestAccount(userId: string, input: RegisterBody) {
 export async function signIn(
   email: string,
   password: string,
+  code: string,
 ): Promise<SignInResult> {
-  const user = await UserModel.findOne({ email }).select("+passwordHash");
-  const passwordOk =
-    Boolean(user?.passwordHash) &&
-    !user?.isDeleted &&
-    (await verifyPassword(password, user?.passwordHash ?? ""));
-
-  if (!user || !passwordOk) {
-    throw new ApiError({
-      code: ErrorCode.INVALID_CREDENTIALS,
-      message: "Invalid email or password",
-      status: HttpStatus.UNAUTHORIZED,
-    });
-  }
-
+  const user = await loadPasswordUser(email, password);
+  await consumeLoginCode(email, code);
   return issueSession(user);
 }
 
-export async function signInWithGoogle(idToken: string) {
-  return signInWithOAuth(await profileFromGoogleIdToken(idToken));
+export async function signInWithGoogle(code: string) {
+  return signInWithOAuth(await profileFromGoogleAuthCode(code));
 }
 
 export async function signInWithGithub(code: string) {
@@ -140,15 +145,16 @@ export async function signInWithOAuth(profile: OAuthProfile) {
 
 export async function requestPasswordReset(email: string) {
   const user = await UserModel.findOne({ email, isDeleted: false });
-  if (!user) {
-    return {};
+  if (!user || user.isGuest) {
+    throw new ApiError({
+      code: ErrorCode.ACCOUNT_NOT_FOUND,
+      message: "No account found for this email. Create an account first.",
+      status: HttpStatus.NOT_FOUND,
+    });
   }
 
   const code = await saveResetCode(email);
-  if (env.NODE_ENV === "production") {
-    return {};
-  }
-  return { code };
+  return deliverOtpCode(email, code, OTP_PURPOSE_RESET);
 }
 
 export async function resetPassword(
@@ -178,6 +184,44 @@ export async function resetPassword(
   user.passwordHash = await hashPassword(password);
   await user.save();
   await destroyAllUserSessions(user._id.toString());
+}
+
+async function loadPasswordUser(email: string, password: string) {
+  const user = await UserModel.findOne({ email }).select("+passwordHash");
+  if (!user || user.isDeleted) {
+    if (user?.isDeleted) {
+      throw new ApiError({
+        code: ErrorCode.ACCOUNT_DISABLED,
+        message: "This account is disabled",
+        status: HttpStatus.FORBIDDEN,
+      });
+    }
+    throw new ApiError({
+      code: ErrorCode.INVALID_CREDENTIALS,
+      message: "Invalid email or password",
+      status: HttpStatus.UNAUTHORIZED,
+    });
+  }
+
+  if (!user.passwordHash) {
+    throw new ApiError({
+      code: ErrorCode.INVALID_CREDENTIALS,
+      message:
+        "This account was created with Google or GitHub. Sign in with that instead.",
+      status: HttpStatus.UNAUTHORIZED,
+    });
+  }
+
+  const passwordOk = await verifyPassword(password, user.passwordHash);
+  if (!passwordOk) {
+    throw new ApiError({
+      code: ErrorCode.INVALID_CREDENTIALS,
+      message: "Invalid email or password",
+      status: HttpStatus.UNAUTHORIZED,
+    });
+  }
+
+  return user;
 }
 
 async function findOrCreateOAuthUser(profile: OAuthProfile) {

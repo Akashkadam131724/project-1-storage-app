@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { AdminRoute } from "../components/routes/admin-route.tsx";
 import { ProtectedRoute } from "../components/routes/protected-route.tsx";
+import { PublicRoute } from "../components/routes/public-route.tsx";
 import { ForgotPage } from "../pages/AuthPage/ForgotPage.tsx";
 import { LoginPage } from "../pages/AuthPage/LoginPage.tsx";
 import { RegisterPage } from "../pages/AuthPage/RegisterPage.tsx";
@@ -34,9 +35,13 @@ export const routes = [
       { path: "appearance", Component: AppearancePage },
       { path: "settings", Component: SettingsPage },
       { path: "password", Component: PasswordPage },
-      { path: "roadmap", Component: RoadmapPage },
       { path: "admin", Component: AdminRoute },
     ],
+  },
+  {
+    path: paths.roadmap,
+    Component: PublicRoute,
+    children: [{ index: true, Component: RoadmapPage }],
   },
   { path: paths.login, Component: LoginPage },
   { path: paths.register, Component: RegisterPage },

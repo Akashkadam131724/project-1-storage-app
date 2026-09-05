@@ -2,6 +2,7 @@ import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
 import { UserModel } from "../src/modules/user/user.model.js";
+import { passwordLogin, registerUser } from "./auth-helpers.js";
 
 const app = createApp();
 
@@ -10,17 +11,7 @@ async function signup(
   email: string,
   name = "Ada Lovelace",
 ) {
-  const otp = await agent.post("/api/auth/otp").send({ email }).expect(200);
-
-  await agent
-    .post("/api/auth/register")
-    .send({
-      name,
-      email,
-      password: "password1",
-      code: otp.body.data.code,
-    })
-    .expect(201);
+  await registerUser(agent, email, "password1", name);
 }
 
 async function login(
@@ -28,7 +19,7 @@ async function login(
   email: string,
   password = "password1",
 ) {
-  await agent.post("/api/auth/login").send({ email, password }).expect(200);
+  await passwordLogin(agent, email, password);
 }
 
 describe("user profile and password", () => {
@@ -61,14 +52,35 @@ describe("user profile and password", () => {
     const oldLogin = await request(app).post("/api/auth/login").send({
       email: "ada@example.com",
       password: "password1",
+      code: "1234",
     });
     expect(oldLogin.status).toBe(401);
 
-    const newLogin = await request(app).post("/api/auth/login").send({
-      email: "ada@example.com",
-      password: "password2",
+    await passwordLogin(request.agent(app), "ada@example.com", "password2");
+  });
+
+  it("rejects change password with the wrong current password", async () => {
+    const agent = request.agent(app);
+    await signup(agent, "ada@example.com");
+    await login(agent, "ada@example.com");
+
+    const response = await agent.patch("/api/users/me/password").send({
+      currentPassword: "wrong-pass",
+      newPassword: "password2",
     });
-    expect(newLogin.status).toBe(200);
+    expect(response.status).toBe(401);
+    expect(response.body.code).toBe("INVALID_CREDENTIALS");
+  });
+
+  it("rejects setting a password on a guest session", async () => {
+    const agent = request.agent(app);
+    await agent.post("/api/auth/guest").expect(200);
+
+    const response = await agent
+      .post("/api/users/me/password")
+      .send({ password: "password1" });
+    expect(response.status).toBe(403);
+    expect(response.body.code).toBe("FORBIDDEN");
   });
 
   it("sets a password only when the account has none", async () => {
@@ -93,11 +105,7 @@ describe("user profile and password", () => {
       .expect(200);
 
     await agent.post("/api/auth/logout").expect(200);
-    const loginAfter = await request(app).post("/api/auth/login").send({
-      email: "ada@example.com",
-      password: "password2",
-    });
-    expect(loginAfter.status).toBe(200);
+    await passwordLogin(request.agent(app), "ada@example.com", "password2");
   });
 
   it("disables the current account", async () => {
@@ -108,11 +116,13 @@ describe("user profile and password", () => {
     await agent.patch("/api/users/me/disable").expect(200);
     expect((await agent.get("/api/users/me")).status).toBe(401);
 
-    const loginAfter = await request(app).post("/api/auth/login").send({
+    const loginAfter = await request(app).post("/api/auth/otp").send({
       email: "ada@example.com",
+      action: "login",
       password: "password1",
     });
-    expect(loginAfter.status).toBe(401);
+    expect(loginAfter.status).toBe(403);
+    expect(loginAfter.body.code).toBe("ACCOUNT_DISABLED");
   });
 
   it("deletes the current account", async () => {

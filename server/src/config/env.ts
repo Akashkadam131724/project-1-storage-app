@@ -28,6 +28,7 @@ const envSchema = z
         return undefined;
       }),
     GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
     GITHUB_CLIENT_ID: z.string().optional(),
     GITHUB_CLIENT_SECRET: z.string().optional(),
     GITHUB_CALLBACK_URL: z
@@ -44,6 +45,22 @@ const envSchema = z
       .int()
       .positive()
       .default(DEFAULT_GUEST_STORAGE_BYTES),
+    RESEND_KEY: z
+      .string()
+      .optional()
+      .transform((value) => value?.trim() || undefined),
+    RESEND_FROM: z
+      .string()
+      .optional()
+      .transform((value) => value?.trim() || undefined),
+    OTP_ECHO_CODE: z
+      .string()
+      .optional()
+      .transform((value) => {
+        if (value === "true") return "true";
+        if (value === "false") return "false";
+        return undefined;
+      }),
   })
   .superRefine((value, ctx) => {
     if (
@@ -76,3 +93,10 @@ export const cookieSecure =
     : env.COOKIE_SECURE === "false"
       ? false
       : env.NODE_ENV === "production";
+
+export const otpEchoCode =
+  env.OTP_ECHO_CODE === "true"
+    ? true
+    : env.OTP_ECHO_CODE === "false"
+      ? false
+      : env.NODE_ENV === "test";

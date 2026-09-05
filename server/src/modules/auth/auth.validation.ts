@@ -8,9 +8,21 @@ import {
 const email = z.string().trim().toLowerCase().email("Enter a valid email");
 const otpPattern = new RegExp(`^\\d{${String(OTP_LENGTH)}}$`);
 
-export const requestOtpSchema = z.object({
-  email,
-});
+export const requestOtpSchema = z
+  .object({
+    email,
+    action: z.enum(["login", "register"]),
+    password: z.string().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.action === "login" && !value.password) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Password is required",
+        path: ["password"],
+      });
+    }
+  });
 
 export const registerSchema = z.object({
   name: z
@@ -36,10 +48,14 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   email,
   password: z.string().min(1, "Password is required"),
+  code: z
+    .string()
+    .length(OTP_LENGTH, `Code must be ${String(OTP_LENGTH)} digits`)
+    .regex(otpPattern, `Code must be ${String(OTP_LENGTH)} digits`),
 });
 
 export const googleLoginSchema = z.object({
-  idToken: z.string().min(1, "Google ID token is required"),
+  code: z.string().min(1, "Google authorization code is required"),
 });
 
 export const githubLoginSchema = z.object({

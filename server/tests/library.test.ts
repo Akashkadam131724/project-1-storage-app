@@ -1,26 +1,11 @@
-import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
+import { signedInAgent as signedInAgentFor } from "./auth-helpers.js";
 
 const app = createApp();
 
 async function signedInAgent(email = "ada@example.com") {
-  const agent = request.agent(app);
-  const otp = await agent.post("/api/auth/otp").send({ email }).expect(200);
-  await agent
-    .post("/api/auth/register")
-    .send({
-      name: "Ada Lovelace",
-      email,
-      password: "password1",
-      code: otp.body.data.code,
-    })
-    .expect(201);
-  await agent
-    .post("/api/auth/login")
-    .send({ email, password: "password1" })
-    .expect(200);
-  return agent;
+  return signedInAgentFor(app, email);
 }
 
 describe("trash, starred, and recent", () => {
@@ -161,7 +146,7 @@ describe("trash, starred, and recent", () => {
     expect(after.body.data.files.items).toEqual([]);
   });
 
-  it("records recent files when metadata or content is opened", async () => {
+  it("records recent files when uploaded or opened", async () => {
     const agent = await signedInAgent("recent@example.com");
     const uploaded = await agent
       .post("/api/files")
@@ -169,7 +154,10 @@ describe("trash, starred, and recent", () => {
       .expect(201);
     const fileId = uploaded.body.data.id as string;
 
-    expect((await agent.get("/api/recent")).body.data.items).toEqual([]);
+    const afterUpload = await agent.get("/api/recent").expect(200);
+    expect(
+      afterUpload.body.data.items.map((item: { name: string }) => item.name),
+    ).toEqual(["recent.txt"]);
 
     await agent.get(`/api/files/${fileId}`).expect(200);
     const recent = await agent.get("/api/recent").expect(200);

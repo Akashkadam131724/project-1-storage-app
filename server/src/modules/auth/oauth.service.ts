@@ -65,24 +65,32 @@ export function clientAuthRedirect(status: "ok" | "error") {
   return url.toString();
 }
 
-export async function profileFromGoogleIdToken(
-  idToken: string,
+export async function profileFromGoogleAuthCode(
+  code: string,
 ): Promise<OAuthProfile> {
-  if (!env.GOOGLE_CLIENT_ID) {
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
     throw oauthUnavailable("Google");
   }
 
-  const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+  const client = new OAuth2Client(
+    env.GOOGLE_CLIENT_ID,
+    env.GOOGLE_CLIENT_SECRET,
+    "postmessage",
+  );
 
   try {
+    const { tokens } = await client.getToken(code);
+    if (!tokens.id_token) {
+      throw oauthFailed("Google authorization code is invalid");
+    }
     const ticket = await client.verifyIdToken({
-      idToken,
+      idToken: tokens.id_token,
       audience: env.GOOGLE_CLIENT_ID,
     });
     return payloadToProfile(ticket.getPayload());
   } catch (error) {
     if (error instanceof ApiError) throw error;
-    throw oauthFailed("Google token could not be verified");
+    throw oauthFailed("Google authorization code is invalid");
   }
 }
 

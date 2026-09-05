@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import request from "supertest";
 import { createApp } from "../src/app.js";
+import { signedInAgent as signedInAgentFor } from "./auth-helpers.js";
 import {
   listingQueryOf,
   listingQuerySchema,
@@ -9,22 +9,7 @@ import {
 const app = createApp();
 
 async function signedInAgent(email: string) {
-  const agent = request.agent(app);
-  const otp = await agent.post("/api/auth/otp").send({ email }).expect(200);
-  await agent
-    .post("/api/auth/register")
-    .send({
-      name: "Ada Lovelace",
-      email,
-      password: "password1",
-      code: otp.body.data.code,
-    })
-    .expect(201);
-  await agent
-    .post("/api/auth/login")
-    .send({ email, password: "password1" })
-    .expect(200);
-  return agent;
+  return signedInAgentFor(app, email);
 }
 
 function names(items: { name: string }[]) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router";
 import { Download } from "lucide-react";
 import {
@@ -25,9 +25,14 @@ export function FilePage() {
   const { fileId } = useParams();
   const { user } = useAuth();
   const workspace = useDriveWorkspace();
+  const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["file", fileId],
-    queryFn: () => getFile(fileId ?? ""),
+    queryFn: async () => {
+      const file = await getFile(fileId ?? "");
+      await queryClient.invalidateQueries({ queryKey: ["recent"] });
+      return file;
+    },
     enabled: Boolean(fileId),
   });
   const file = query.data;

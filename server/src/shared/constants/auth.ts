@@ -22,7 +22,8 @@ export const GITHUB_STATE_COOKIE = "gh_oauth_state";
 export const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 export const GITHUB_OAUTH_SCOPES = "read:user user:email";
 
-export const OTP_PURPOSES = ["signup", "reset"] as const;
+export const OTP_PURPOSES = ["signup", "login", "reset"] as const;
 export type OtpPurpose = (typeof OTP_PURPOSES)[number];
 export const OTP_PURPOSE_SIGNUP = "signup" satisfies OtpPurpose;
+export const OTP_PURPOSE_LOGIN = "login" satisfies OtpPurpose;
 export const OTP_PURPOSE_RESET = "reset" satisfies OtpPurpose;

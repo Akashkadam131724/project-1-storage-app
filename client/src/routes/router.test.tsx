@@ -1,3 +1,4 @@
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -5,6 +6,7 @@ import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider } from "../contexts/auth-provider.tsx";
 import { ThemeProvider } from "../contexts/theme/theme-provider.tsx";
+import { env } from "../utils/env.ts";
 import { paths } from "../utils/paths.ts";
 import { createQueryClient } from "../utils/query-client.ts";
 import { routes } from "./index.ts";
@@ -125,14 +127,24 @@ function renderPath(path: string, history?: string[]) {
     initialEntries: entries,
     initialIndex: entries.length - 1,
   });
-  return render(
+  const tree = (
     <ThemeProvider>
       <QueryClientProvider client={createQueryClient()}>
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>
       </QueryClientProvider>
-    </ThemeProvider>,
+    </ThemeProvider>
+  );
+
+  if (!env.VITE_GOOGLE_CLIENT_ID) {
+    return render(tree);
+  }
+
+  return render(
+    <GoogleOAuthProvider clientId={env.VITE_GOOGLE_CLIENT_ID}>
+      {tree}
+    </GoogleOAuthProvider>,
   );
 }
 
@@ -175,6 +187,24 @@ describe("app routes", () => {
     expect(
       screen.getByRole("button", { name: "Continue as guest" }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Project roadmap" }),
+    ).toBeInTheDocument();
+  });
+
+  it("lets anyone open the public roadmap", async () => {
+    mockSignedOut();
+    renderPath(paths.roadmap);
+    expect(
+      await screen.findByRole("heading", { name: "Roadmap" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Repo setup: Prettier and Husky"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Sign in" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Back" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows a keep-files banner for guest sessions", async () => {
@@ -230,9 +260,7 @@ describe("app routes", () => {
     expect(screen.getByText("Name and email")).toBeInTheDocument();
     expect(screen.getByText("Theme for this device")).toBeInTheDocument();
     expect(screen.getByText("Reset password")).toBeInTheDocument();
-    expect(
-      screen.getByText("Deploy first, then S3 and the rest"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Auth on prod, then S3")).toBeInTheDocument();
     expect(screen.queryByLabelText("Current password")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
     expect(
@@ -344,16 +372,24 @@ describe("app routes", () => {
       await screen.findByRole("heading", { name: "Roadmap" }),
     ).toBeInTheDocument();
     expect(
-      await screen.findByRole("heading", { name: "Deploy this slice first" }),
+      screen.getByText("Repo setup: Prettier and Husky"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Persistent file storage")).toBeInTheDocument();
-    expect(screen.getByText("Host the API and the client")).toBeInTheDocument();
     expect(
-      screen.getByText("S3-compatible object storage"),
+      screen.getByText("Full auth on local: OTP, Google, GitHub"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Search and filter users")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Admin" })).toBeInTheDocument();
-    expect(screen.getByText("Already in place")).toBeInTheDocument();
+    expect(
+      screen.getByText("Verify that auth on production"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("S3 on local")).toBeInTheDocument();
+    expect(screen.getByText("S3 on production")).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", {
+        name: /Repo setup: Prettier and Husky/,
+      }),
+    ).toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: /Verify that auth on production/ }),
+    ).not.toBeChecked();
   });
 
   it("switches Home between grid and list view", async () => {

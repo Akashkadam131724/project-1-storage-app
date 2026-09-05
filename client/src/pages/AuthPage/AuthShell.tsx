@@ -1,8 +1,10 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
+import { Link } from "react-router";
 import { ThemeSwitcher } from "../../components/ui/theme-switcher.tsx";
 import { BrandMark } from "../../components/ui/brand-mark.tsx";
 import { StorageHero } from "../../components/ui/storage-hero.tsx";
 import { TextField } from "../../components/ui/text-field.tsx";
+import { paths } from "../../utils/paths.ts";
 import { AuthBubbles } from "./AuthBubbles.tsx";
 
 export const authFormClass = "mt-6 space-y-5";
@@ -26,9 +28,16 @@ export function AuthShell({
       </div>
       <div className="relative z-10 flex min-h-svh flex-col justify-end gap-10 p-6 lg:flex-row lg:items-center lg:justify-between lg:p-12 xl:p-16">
         <AuthCopy />
-        <AuthCard title={title} subtitle={subtitle}>
-          {children}
-        </AuthCard>
+        <div className="w-full max-w-[440px]">
+          <AuthCard title={title} subtitle={subtitle}>
+            {children}
+          </AuthCard>
+          <p className="mt-4 text-center text-sm text-white/80">
+            <Link className="font-medium underline" to={paths.roadmap}>
+              Project roadmap
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

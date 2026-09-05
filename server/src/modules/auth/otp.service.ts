@@ -1,18 +1,21 @@
 import { randomInt } from "node:crypto";
-import { env } from "../../config/env.js";
 import {
   OTP_MAX,
   OTP_MIN,
+  OTP_PURPOSE_LOGIN,
   OTP_PURPOSE_RESET,
   OTP_PURPOSE_SIGNUP,
   type OtpPurpose,
 } from "../../shared/constants/index.js";
 import { ApiError, ErrorCode, HttpStatus } from "../../shared/http/index.js";
-import { logger } from "../../shared/lib/logger.js";
 import { OtpModel } from "./otp.model.js";
 
 export async function saveSignupCode(email: string) {
   return saveOtp(email, OTP_PURPOSE_SIGNUP);
+}
+
+export async function saveLoginCode(email: string) {
+  return saveOtp(email, OTP_PURPOSE_LOGIN);
 }
 
 export async function saveResetCode(email: string) {
@@ -21,6 +24,10 @@ export async function saveResetCode(email: string) {
 
 export async function consumeSignupCode(email: string, code: string) {
   return consumeOtp(email, code, OTP_PURPOSE_SIGNUP);
+}
+
+export async function consumeLoginCode(email: string, code: string) {
+  return consumeOtp(email, code, OTP_PURPOSE_LOGIN);
 }
 
 export async function consumeResetCode(email: string, code: string) {
@@ -34,10 +41,6 @@ async function saveOtp(email: string, purpose: OtpPurpose) {
     { code, purpose, createdAt: new Date() },
     { upsert: true },
   );
-
-  if (env.NODE_ENV !== "production" && env.NODE_ENV !== "test") {
-    logger.info(`${purpose} code for ${email}: ${code}`);
-  }
 
   return code;
 }

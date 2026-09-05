@@ -9,8 +9,8 @@ import {
   continueAsGuest,
   convertGuestAccount,
   registerAccount,
+  requestAuthCode,
   requestPasswordReset,
-  requestSignupCode,
   resetPassword,
   signIn,
   signInWithGithub,
@@ -44,8 +44,8 @@ import {
 } from "./session.service.js";
 
 export async function requestOtp(req: Request, res: Response) {
-  const { email } = req.body as RequestOtpBody;
-  const data = await requestSignupCode(email);
+  const body = req.body as RequestOtpBody;
+  const data = await requestAuthCode(body);
   return ApiResponse.success(res, {
     message: "Verification code sent",
     data,
@@ -89,15 +89,15 @@ export async function guestLogin(req: Request, res: Response) {
 }
 
 export async function login(req: Request, res: Response) {
-  const { email, password } = req.body as LoginBody;
-  const { sessionId, profile } = await signIn(email, password);
+  const { email, password, code } = req.body as LoginBody;
+  const { sessionId, profile } = await signIn(email, password, code);
   attachSessionCookie(res, sessionId);
   return ApiResponse.success(res, { message: "Signed in", data: profile });
 }
 
 export async function googleLogin(req: Request, res: Response) {
-  const { idToken } = req.body as GoogleLoginBody;
-  const { sessionId, profile } = await signInWithGoogle(idToken);
+  const { code } = req.body as GoogleLoginBody;
+  const { sessionId, profile } = await signInWithGoogle(code);
   attachSessionCookie(res, sessionId);
   return ApiResponse.success(res, { message: "Signed in", data: profile });
 }
@@ -106,10 +106,7 @@ export function githubStart(_req: Request, res: Response) {
   const state = newOauthState();
   const url = githubAuthorizeUrl(state);
   attachGithubStateCookie(res, state);
-  return ApiResponse.success(res, {
-    message: "Continue at GitHub",
-    data: { url },
-  });
+  return res.redirect(url);
 }
 
 export async function githubCallback(req: Request, res: Response) {
@@ -154,7 +151,7 @@ export async function forgotPassword(req: Request, res: Response) {
   const { email } = req.body as ForgotPasswordBody;
   const data = await requestPasswordReset(email);
   return ApiResponse.success(res, {
-    message: "If that email exists, a reset code was sent",
+    message: "Verification code sent to your email",
     data,
   });
 }
