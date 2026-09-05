@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
-RUN npm ci && npm run build
+RUN npm ci --legacy-peer-deps && npm run build
 
 FROM node:22-alpine
 WORKDIR /app
@@ -11,7 +11,7 @@ ENV NODE_ENV=production
 ENV PORT=4000
 ENV UPLOAD_DIR=/data/blobs
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --legacy-peer-deps
 COPY --from=build /app/dist ./dist
 RUN mkdir -p /data/blobs
 EXPOSE 4000

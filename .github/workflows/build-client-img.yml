@@ -33,6 +33,7 @@ jobs:
         run: |
           docker build \
             --build-arg VITE_API_URL="${{ secrets.VITE_API_URL }}" \
+            --build-arg VITE_GOOGLE_CLIENT_ID="${{ secrets.VITE_GOOGLE_CLIENT_ID }}" \
             -t "$IMAGE_NAME:latest" \
             -t "$IMAGE_NAME:$IMAGE_TAG" \
             ./client
